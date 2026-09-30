@@ -1,5 +1,7 @@
 #! /bin/zsh
 
-# This script is used to deploy Nomad jobs using Ansible. It assumes that you have already set up your inventory and configured your Ansible playbooks.
-# Run the Ansible playbook to deploy Nomad jobs
-ansible-playbook playbooks/jobs.yml
+# This script's underlying playbook (playbooks/jobs.yml) was removed
+# 2026-09-05 — job deployment moved out of this repo. See the "Scope"
+# section in README.md and JOBS.md for details.
+echo "run-jobs.zsh is no longer functional - job deployment moved out of this repo. See README.md's Scope section." >&2
+exit 1

@@ -8,6 +8,10 @@ An Ansible playbook for deploying [Nomad](https://developer.hashicorp.com/nomad/
 
 **[Consul](https://developer.hashicorp.com/consul/docs)** is a service mesh and service discovery tool, also by HashiCorp. It provides a distributed key-value store, health checking, and DNS-based service discovery. Nomad integrates with Consul natively to handle cluster membership and service registration.
 
+## Scope
+
+This playbook (like its [Nomaduntu](https://github.com/anultravioletaurora/Nomaduntu) counterpart and the [Nomadable](https://github.com/anultravioletaurora/Nomadable) parent that composes them) provisions the Nomad + Consul **agents** themselves — it intentionally does not deploy the job specs those agents run. An Ansible role that used to template and register Nomad job specs directly (a `gh_actions` role rendering `actions-runner.nomad.hcl`, etc.) was removed 2026-09-05 once job deployment moved to dedicated repos: [`Jellify/Nomad-Jobs`](https://github.com/anultravioletaurora/Nomad-Jobs) (Terraform-managed) and a legacy hand-deployed `nomad-jobs` repo. If you're looking to add or change a running job, it belongs in one of those, not here.
+
 <details>
 <summary><strong>Why I built this</strong></summary>
 
@@ -75,12 +79,6 @@ Dry-run in check + diff mode to preview changes without applying them:
 
 ```zsh
 ./check.zsh
-```
-
-Deploy jobs
-
-```zsh
-./run-jobs.zsh
 ```
 
 Serial Reboot all hosts in the inventory:
