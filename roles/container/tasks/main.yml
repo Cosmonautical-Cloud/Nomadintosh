@@ -1,28 +1,8 @@
 ---
-# https://formulae.brew.sh/formula/container#default
-- name: Install Apple Container via Homebrew
-  community.general.homebrew:
-    name: "container"
-    state: latest
-    update_homebrew: true
-  register: container_install_result
+- name: Include Apple Container setup tasks
+  ansible.builtin.include_tasks: setup.yml
+  when: container.enabled | default(false)
 
-- name: Include Launch Agent tasks for Apple Container
-  ansible.builtin.include_tasks: launch_agent.yml
-  when: container_install_result.changed
-
-- name: Check that the Container system is running
-  ansible.builtin.command:
-    argv:
-      - "{{ homebrew_dir }}/bin/container"
-      - system
-      - status
-  register: container_info
-  changed_when: false
-
-# How's this for a double negative?
-- name: Assert that Container system is running
-  ansible.builtin.assert:
-    that:
-      - "'not running and not registered' not in container_info.stdout"
-    fail_msg: "Container system does not appear to be running. Please check the launch agent and logs for more details."
+- name: Include Apple Container teardown tasks
+  ansible.builtin.include_tasks: teardown.yml
+  when: not (container.enabled | default(false))

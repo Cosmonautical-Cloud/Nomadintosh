@@ -70,11 +70,11 @@ Variables defined directly under a hostname override any group-level `vars` for 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `server.enabled` | `false` | Configures the host as a Nomad/Consul server node |
-| `podman.enabled` | `false` | Installs Podman and the [nomad-driver-podman](https://developer.hashicorp.com/nomad/plugins/drivers/podman) plugin |
-| `docker.enabled` | `false` | Installs Docker Desktop and enables the Nomad Docker driver |
+| `podman.enabled` | _(absent)_ | `true` installs Podman, its machine, and the `nomad-driver-podman` plugin; `false` actively removes all three; absent leaves the host unmanaged either way (see `roles/podman/README.md`) |
+| `docker.enabled` | _(absent)_ | `true` installs Docker Desktop and the Nomad `docker` plugin config; `false` actively removes Docker Desktop; absent leaves the host unmanaged either way (see `roles/docker_desktop/README.md`) |
 | `gh_actions.enabled` | `false` | Deploys a GitHub Actions self-hosted runner as a Nomad job |
 | `gh_actions.env` | _(absent)_ | Map of environment variables injected into the runner process (see below) |
-| `container.enabled` | `false` | Installs Apple's Container CLI and registers a LaunchAgent |
+| `container.enabled` | _(absent)_ | `true` installs Apple's Container CLI, its LaunchAgent, and the `nomad-driver-container` plugin; `false` actively removes all three; absent leaves the host unmanaged either way (see `roles/container/README.md`) |
 | `seaweedfs.master.enabled` / `seaweedfs.volume.enabled` | `false` | Installs SeaweedFS + macFUSE; an enabled volume registers a `seaweedfs-data` Nomad host volume |
 | `nfs_mounts_shares` | _(absent)_ | List of `{share_export_path}` NFS shares to mount (see below) |
 | `volumes` | _(absent)_ | List of host volumes to expose to the Nomad client (see below) |

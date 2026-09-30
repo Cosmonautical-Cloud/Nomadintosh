@@ -1,8 +1,10 @@
 # container
 
-Installs [Apple's Container CLI](https://github.com/apple/container) and registers it as a LaunchAgent so the container system starts automatically at login.
+Installs or removes [Apple's Container CLI](https://github.com/apple/container) based on `container.enabled`, registering it as a LaunchAgent so the container system starts automatically at login.
 
 ## What it does
+
+`container.enabled: true` (`tasks/setup.yml`):
 
 1. Installs or upgrades the `container` package via Homebrew.
 2. Templates a LaunchAgent plist (`com.apple.container.plist`) into `~/Library/LaunchAgents/`.
@@ -12,11 +14,15 @@ Installs [Apple's Container CLI](https://github.com/apple/container) and registe
 
 The LaunchAgent invokes `container system start --enable-kernel-install` at login, writing stdout and stderr to `{{ log_dir }}/container.log`.
 
+`container.enabled: false` (`tasks/teardown.yml`): unloads the LaunchAgent (`launchctl bootout`, if loaded), removes its plist, and uninstalls the `container` package via Homebrew. Nomad's `nomad-driver-container` plugin is torn down separately by the `nomad` role (see its README), which is also conditioned on `container.enabled`.
+
+`container` absent entirely — this role isn't included at all (see `playbooks/nomadintosh.yml`); a host that's never mentioned `container` is left alone either way.
+
 ## Host variables
 
 | Variable | Values | Effect |
 |---|---|---|
-| `container.enabled` | `true` / _(absent)_ | Include this role for the host. Without it the role is skipped entirely. |
+| `container.enabled` | `true` / `false` / _(absent)_ | Install, uninstall, or don't manage the Container CLI on this host |
 
 ## Dependencies
 

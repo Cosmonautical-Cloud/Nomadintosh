@@ -51,14 +51,18 @@
     - name: Include Container role
       ansible.builtin.include_role:
         name: container
-      when: container.enabled | default(false) and ansible_facts['os_family'] == 'Darwin'
+      # container.enabled: false (not just absent) actively tears down an
+      # existing install - see roles/container/README.md.
+      when: container.enabled is defined and ansible_facts['os_family'] == 'Darwin'
       tags:
         - container
 
     - name: Include Docker Desktop role
       ansible.builtin.include_role:
         name: docker_desktop
-      when: docker.enabled | default(false) and ansible_facts['os_family'] == 'Darwin'
+      # docker.enabled: false (not just absent) actively tears down an
+      # existing install - see roles/docker_desktop/README.md.
+      when: docker.enabled is defined and ansible_facts['os_family'] == 'Darwin'
       tags:
         - docker
         - container-runtime
@@ -66,7 +70,9 @@
     - name: Include Podman role
       ansible.builtin.include_role:
         name: podman
-      when: podman.enabled | default(false) and ansible_facts['os_family'] == 'Darwin'
+      # podman.enabled: false (not just absent) actively tears down an
+      # existing install - see roles/podman/README.md.
+      when: podman.enabled is defined and ansible_facts['os_family'] == 'Darwin'
       tags:
         - podman
         - container-runtime

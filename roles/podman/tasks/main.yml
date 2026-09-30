@@ -1,39 +1,8 @@
 ---
-- name: Install Podman via Homebrew
-  community.general.homebrew:
-    name: podman
-    state: latest
-    update_homebrew: true
+- name: Include Podman setup tasks
+  ansible.builtin.include_tasks: setup.yml
+  when: podman.enabled | default(false)
 
-- name: Check that we have a Podman machine
-  ansible.builtin.command:
-    argv:
-      - "{{ homebrew_dir }}/bin/podman"
-      - machine
-      - list
-      - -q
-  register: podman_machine_list
-
-- name: Create a Podman machine if none exists
-  ansible.builtin.include_tasks: init-machine.yml
-  when: podman_machine_list.stdout == ""
-
-# podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}'
-- name: Get Podman machine socket path
-  ansible.builtin.command:
-    argv:
-      - "{{ homebrew_dir }}/bin/podman"
-      - machine
-      - inspect
-      - --format
-      - "{{ '{{' }}.ConnectionInfo.PodmanSocket.Path{{ '}}' }}"
-  register: podman_connections
-  changed_when: false
-
-- name: Debug Podman socket path
-  ansible.builtin.debug:
-    msg: "Podman socket path: {{ podman_connections.stdout }}"
-
-- name: Set podman_socket_path fact
-  ansible.builtin.set_fact:
-    podman_socket_path: "unix://{{ podman_connections.stdout }}"
+- name: Include Podman teardown tasks
+  ansible.builtin.include_tasks: teardown.yml
+  when: not (podman.enabled | default(false))

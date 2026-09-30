@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [1.3.0] - 2026-09-30
+
+### Added
+
+- `container.enabled`, `podman.enabled`, and `docker.enabled` are now tri-state: `true` installs/enables as before, `false` actively tears down an existing install (uninstalls the package, unloads and removes its LaunchAgent where applicable, stops/removes the Podman machine where applicable, and removes the corresponding Nomad driver plugin), and leaving the variable absent entirely still means "don't manage this at all" either way. See `roles/container/README.md`, `roles/podman/README.md`, `roles/docker_desktop/README.md`, and `roles/nomad/README.md`.
+
+### Fixed
+
+- Nomad's LaunchAgent is now restarted (`launchctl kickstart -k`) whenever `server.hcl` changes and Nomad is already running, not just when the Nomad package itself was upgraded — previously a config-only change (e.g. a driver plugin enabled/disabled) would template a new `server.hcl` but never actually apply it to the running agent, requiring a manual restart or reboot. Removed `roles/nomad/tasks/start.yml`, which had been empty (and its "Kickstart Nomad services" step consequently a no-op) since the `organize launchagents` commit.
+
 ## [1.2.1] - 2026-09-29
 
 ### Changed

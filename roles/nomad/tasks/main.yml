@@ -10,9 +10,17 @@
   ansible.builtin.import_tasks: container_driver.yml
   when: container.enabled | default(false)
 
+- name: Remove Container driver plugin
+  ansible.builtin.import_tasks: container_driver_teardown.yml
+  when: not (container.enabled | default(false))
+
 - name: Download Podman driver plugin
   ansible.builtin.import_tasks: podman_driver.yml
   when: podman.enabled | default(false)
+
+- name: Remove Podman driver plugin
+  ansible.builtin.import_tasks: podman_driver_teardown.yml
+  when: not (podman.enabled | default(false))
 
 - name: Apply Nomad configuration templates
   become: true
@@ -20,7 +28,3 @@
 
 - name: Apply LaunchAgents configuration
   ansible.builtin.import_tasks: launchagent.yml
-
-- name: Kickstart Nomad services
-  ansible.builtin.import_tasks: start.yml
-  when: nomad_package_updated | default(false)

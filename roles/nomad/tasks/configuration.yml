@@ -6,3 +6,4 @@
     mode: '0644'
     owner: root
     group: wheel
+  register: nomad_server_config

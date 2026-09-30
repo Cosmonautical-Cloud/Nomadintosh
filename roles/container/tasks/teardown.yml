@@ -1,0 +1,30 @@
+---
+- name: Check whether Apple Container's LaunchAgent is loaded
+  ansible.builtin.command:
+    argv:
+      - launchctl
+      - list
+      - com.apple.container
+  register: container_launchctl
+  failed_when: false
+  changed_when: false
+  check_mode: false
+
+- name: Unload Apple Container's LaunchAgent
+  ansible.builtin.command:
+    argv:
+      - launchctl
+      - bootout
+      - gui/{{ ansible_user_uid }}/com.apple.container
+  when: container_launchctl.rc == 0
+  changed_when: true
+
+- name: Remove Apple Container's LaunchAgent plist
+  ansible.builtin.file:
+    path: "/Users/{{ ansible_user }}/Library/LaunchAgents/com.apple.container.plist"
+    state: absent
+
+- name: Uninstall Apple Container via Homebrew
+  community.general.homebrew:
+    name: "container"
+    state: absent

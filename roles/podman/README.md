@@ -1,17 +1,25 @@
 # podman
 
-Installs [Podman](https://podman.io/) and initialises a Podman machine on the host, then registers a LaunchAgent to keep the machine running across reboots.
+Installs or removes [Podman](https://podman.io/) based on `podman.enabled`, managing a Podman machine on the host and a LaunchAgent to keep it running across reboots.
 
 ## What it does
+
+`podman.enabled: true` (`tasks/setup.yml`):
 
 1. Installs or upgrades Podman via Homebrew.
 2. Checks for an existing Podman machine. If none exists, initialises and starts one.
 3. Inspects the machine to obtain its Unix socket path and sets the `podman_socket_path` fact (used by the Nomad role when building the Podman driver config).
 4. Templates a LaunchAgent plist to `~/Library/LaunchAgents/com.podman.machine.default.plist` and bootstraps it into launchd so the Podman machine starts automatically on login.
 
+`podman.enabled: false` (`tasks/teardown.yml`): stops and removes any existing Podman machine, unloads the LaunchAgent (`launchctl bootout`, if loaded) and removes its plist, then uninstalls Podman via Homebrew. Nomad's `nomad-driver-podman` plugin is torn down separately by the `nomad` role (see its README), which is also conditioned on `podman.enabled`.
+
+`podman` absent entirely — this role isn't included at all (see `playbooks/nomadintosh.yml`); a host that's never mentioned `podman` is left alone either way.
+
 ## Host variables
 
-This role is only applied to hosts with `podman: true` set in the inventory.
+| Variable | Values | Effect |
+|---|---|---|
+| `podman.enabled` | `true` / `false` / _(absent)_ | Install, uninstall, or don't manage Podman on this host |
 
 ## No manual setup required
 

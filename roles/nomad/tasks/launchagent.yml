@@ -18,6 +18,7 @@
       register: nomad_launchctl
       failed_when: false
       changed_when: false
+      check_mode: false
 
     - name: Load Nomad Launch Agent
       when: nomad_launchctl.rc != 0
@@ -27,4 +28,21 @@
           - bootstrap
           - gui/{{ ansible_user_uid }}
           - /Users/{{ ansible_user }}/Library/LaunchAgents/homebrew.mxcl.nomad.plist
+      changed_when: true
+
+    # Nomad is already running - loading the LaunchAgent above only ever
+    # happens once, so a later config or binary change needs an explicit
+    # restart to actually take effect (e.g. a driver plugin enabled/disabled
+    # via container.enabled/podman.enabled/docker.enabled no longer applies
+    # until Nomad re-reads server.hcl).
+    - name: Restart Nomad (config or package changed)
+      when:
+        - nomad_launchctl.rc == 0
+        - nomad_server_config.changed or nomad_package_updated | default(false)
+      ansible.builtin.command:
+        argv:
+          - launchctl
+          - kickstart
+          - -k
+          - gui/{{ ansible_user_uid }}/homebrew.mxcl.nomad
       changed_when: true

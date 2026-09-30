@@ -1,0 +1,5 @@
+---
+- name: Remove Container driver plugin from Nomad plugins directory
+  ansible.builtin.file:
+    path: "{{ nomad_plugin_dir }}/{{ nomad_container_driver_name }}"
+    state: absent

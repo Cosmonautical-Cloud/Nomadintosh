@@ -1,14 +1,18 @@
 # docker_desktop
 
-Installs [Docker Desktop](https://www.docker.com/products/docker-desktop/) on the host via Homebrew Cask.
+Installs or removes [Docker Desktop](https://www.docker.com/products/docker-desktop/) on the host via Homebrew Cask, based on `docker.enabled`.
 
 ## What it does
 
-1. Installs the `docker-desktop` cask if it is not already present. The task is skipped if Docker Desktop is already installed.
+- `docker.enabled: true` — installs the `docker-desktop` cask if not already present.
+- `docker.enabled: false` — uninstalls it if present. Nomad's `docker` plugin config is already conditioned on `docker.enabled` in `roles/nomad/templates/nomad.d/server.hcl.j2`, so disabling here also drops it from `server.hcl` on the same run.
+- `docker` absent entirely — this role isn't included at all (see `playbooks/nomadintosh.yml`); a host that's never mentioned `docker` is left alone either way.
 
 ## Host variables
 
-This role is only applied to hosts with `docker: true` set in the inventory.
+| Variable | Values | Effect |
+|---|---|---|
+| `docker.enabled` | `true` / `false` / _(absent)_ | Install, uninstall, or don't manage Docker Desktop on this host |
 
 ## Manual setup required
 

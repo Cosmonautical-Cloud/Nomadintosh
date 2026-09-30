@@ -42,9 +42,9 @@ Hosts are organised into named groups; the group name becomes the Consul/Nomad [
 | Variable | Values | Purpose |
 |---|---|---|
 | `server.enabled` | `true` / _(absent)_ | Configures the host as a Nomad/Consul server |
-| `container.enabled` | `true` / _(absent)_ | Installs Apple's [Container](https://github.com/apple/container) CLI and registers a LaunchAgent |
-| `podman.enabled` | `true` / _(absent)_ | Installs and configures the Podman task driver |
-| `docker.enabled` | `true` / _(absent)_ | Installs and configures Docker Desktop |
+| `container.enabled` | `true` / `false` / _(absent)_ | Installs/removes Apple's [Container](https://github.com/apple/container) CLI, its LaunchAgent, and the Nomad `nomad-driver-container` plugin |
+| `podman.enabled` | `true` / `false` / _(absent)_ | Installs/removes Podman, its machine, its LaunchAgent, and the Nomad `nomad-driver-podman` plugin |
+| `docker.enabled` | `true` / `false` / _(absent)_ | Installs/removes Docker Desktop and the Nomad `docker` plugin config |
 | `volumes` | list of `{name, path}` | Configures [Nomad host volumes](https://developer.hashicorp.com/nomad/docs/configuration/client#host_volume) on the client |
 | `nfs_mounts_shares` | list of `{share_export_path}` | NFS shares to mount from `nas_host` via a watchdog LaunchDaemon. Mount point is always `volume_mount_path` (`/Volumes`) + `/<name>`, `<name>` being `share_export_path`'s final path component — matches the SMB paths these shares replace |
 | `seaweedfs.master.enabled` / `seaweedfs.volume.enabled` | `true` / _(absent)_ | Installs SeaweedFS + macFUSE; an enabled volume registers a `seaweedfs-data` Nomad host volume |

@@ -1,0 +1,5 @@
+---
+- name: Remove Podman driver plugin from Nomad plugins directory
+  ansible.builtin.file:
+    path: "{{ nomad_plugin_dir }}/{{ nomad_podman_driver_name }}"
+    state: absent
