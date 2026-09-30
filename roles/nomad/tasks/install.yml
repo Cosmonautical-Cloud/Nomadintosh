@@ -16,8 +16,11 @@
     msg: "Nomad was {{ 'installed' if nomad_package_install.changed else 'already up to date' }}."
 
 - name: Send Webhook notification if Nomad was installed or updated
-  ansible.builtin.include_role:
-    name: notify
-  vars:
-    notify_webhook_message: "Nomad was {{ 'installed' if nomad_package_install.changed else 'already up to date' }} on node {{ inventory_hostname }}."
+  cosmonautical.notify.discord:
+    id: "{{ item.id }}"
+    token: "{{ item.token }}"
+    message: "Nomad was {{ 'installed' if nomad_package_install.changed else 'already up to date' }} on node {{ inventory_hostname }}."
+  loop: "{{ discord_webhooks | default([]) }}"
+  delegate_to: localhost
+  no_log: true
   when: nomad_package_install.changed

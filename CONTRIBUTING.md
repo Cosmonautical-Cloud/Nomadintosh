@@ -20,7 +20,7 @@ Thanks for your interest in contributing to Nomadintosh!
 - **New roles** should follow the existing structure: `defaults/main.yml`, `tasks/main.yml`, and a `README.md` documenting all variables.
 - **Variable names** must be prefixed with the role name (e.g. `consul_`, `nomad_`). This is enforced by `ansible-lint`.
 - **Templates** live in `roles/<role>/templates/`. Jinja2 files use `.j2` extensions.
-- **Reusable task files** that aren't tied to a specific role live in `playbooks/tasks/`. These are included via `ansible.builtin.import_tasks` and run with `delegate_to: localhost` where appropriate (e.g. the webhook notification task).
+- **Cross-repo functionality** (shared with Nomaduntu) lives in its own collection instead of a role here — e.g. Discord webhook notifications are `cosmonautical.notify.discord`, a dependency declared in `collections/requirements.yml`.
 
 Before opening a pull request, run the dry-run check and linters:
 

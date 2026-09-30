@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [1.4.0] - 2026-09-30
+
+### Changed
+
+- **Breaking:** the `notify` role (webhook notifications) was extracted out to the shared [`cosmonautical.notify`](https://github.com/Cosmonautical-Cloud/ansible-collection-notify) collection, so Nomaduntu can use it too without a circular collection dependency on Nomadable. `roles/notify/` and the unused, drifted `tasks/notify.yml` duplicate were both removed. It's a module there, not a role — the two call sites (`roles/nomad/tasks/install.yml`, `roles/software_update/tasks/main.yml`) now call `cosmonautical.notify.discord` directly on the task (looping over `discord_webhooks`, `delegate_to: localhost`) instead of `include_role: notify` with `notify_webhook_message`. The local `inventory/hosts.yml` `notifications: [{type, url}]` var is renamed `discord_webhooks: [{id, token}]` (the `type` key is redundant now that it's Discord-specific, and `id`/`token` replace the full `url`) — update any fork's inventory accordingly.
+
 ## [1.3.0] - 2026-09-30
 
 ### Added
