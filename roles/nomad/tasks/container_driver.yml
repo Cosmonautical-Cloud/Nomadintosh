@@ -3,6 +3,7 @@
   ansible.builtin.file:
     path: "/tmp/{{ nomad_container_driver_name }}"
     state: directory
+  check_mode: false
 
 - name: Create plugins directory for Nomad
   ansible.builtin.file:
