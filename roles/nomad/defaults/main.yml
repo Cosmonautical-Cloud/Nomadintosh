@@ -10,3 +10,9 @@ nomad_container_driver_repo: "https://github.com/anultravioletaurora/nomad-drive
 nomad_container_driver_archive: "nomad-driver-container-darwin-arm64.tar.gz"
 
 nomad_container_driver_url: "{{ nomad_container_driver_repo }}/releases/download/v{{ nomad_container_driver_version }}/{{ nomad_container_driver_archive }}"
+
+nomad_config_dir: "{{ config_dir }}/nomad.d"
+
+nomad_working_dir: "{{ working_dir }}/nomad"
+
+nomad_jobs_dir: "{{ nomad_working_dir }}/jobs"

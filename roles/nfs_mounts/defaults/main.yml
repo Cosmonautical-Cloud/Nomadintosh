@@ -1,0 +1,45 @@
+---
+# No default shares - this is deliberately opt-in per host, set in
+# inventory/hosts.yml (or group_vars), NOT here. Mount points match their
+# SMB counterparts exactly (/Volumes/<name>, same as the osascript-based
+# mount_share() jobs use), which only works on a host once nothing there
+# still mounts that share over SMB at the same path - two different
+# filesystems can't occupy one mount point at once. A shared default here
+# would silently break any host that runs this role before every one of its
+# SMB-using jobs has been migrated - hosts adopt this one at a time
+# (betelgeuse first): drain it, reboot (clears any lingering SMB mount
+# cleanly), the LaunchDaemon mounts NFS fresh at these paths on boot, then
+# jobs that used to SMB-mount these paths themselves are updated to just
+# wait for the NFS mount instead.
+nfs_mounts_shares: []
+
+# How long (seconds) an unresponsive mount is tolerated before the kernel
+# force-unmounts it - the watchdog's periodic check then notices it's gone
+# and remounts. Worst-case unattended recovery time is roughly this plus one
+# nfs_mounts_watchdog_interval.
+nfs_mounts_deadtimeout: 30
+
+# How often (seconds) the watchdog checks each mount and remounts if missing.
+nfs_mounts_watchdog_interval: 30
+
+# Pinned rather than left to negotiate - the UNAS Pro only speaks NFSv3, so
+# there's no reason to let the client try v4 first (confirmed 2026-09-21).
+nfs_mounts_version: 3
+
+# NFSv3 over TCP negotiates down to 32768 by default on macOS. 65536 is the
+# practical max macOS's mount_nfs will do for v3 - larger RPCs reduce
+# per-operation overhead. Won't help if the bottleneck is the NAS's own disk
+# I/O under concurrent load rather than RPC count (confirmed 2026-09-24 that
+# throughput craters under concurrent access regardless of block size), but
+# it's a safe, cheap thing to raise.
+nfs_mounts_rsize: 65536
+nfs_mounts_wsize: 65536
+
+# RPC timeout (tenths of a second) before the client retransmits a request.
+# macOS's mount_nfs default is 10 (1.0s) - too aggressive once the NAS is
+# under concurrent-load contention (confirmed 2026-09-24/25): a slow-but-alive
+# response past 1s triggers a retransmit, which just adds more redundant load
+# onto an already-struggling NAS. 100 (10.0s) gives it real room to respond
+# before we pile on, while staying well under nfs_mounts_deadtimeout (30s) so
+# a genuinely dead NAS is still detected and force-unmounted promptly.
+nfs_mounts_timeo: 100

@@ -1,0 +1,11 @@
+---
+# kern.ipc.somaxconn: macOS defaults to 128, which is the max number of
+# pending (not-yet-accepted) connections a listening socket can queue. Under
+# a real burst (e.g. multiple devices syncing Nextcloud at once) this fills
+# up fast, and anything past it gets an instant ECONNREFUSED instead of
+# queuing - observed directly on cassiopeia as a wall of 502s during photo
+# sync. 1024 matches typical Linux server defaults; Apple's 128 is a dated,
+# unusually conservative BSD default.
+sysctl_settings:
+  - name: kern.ipc.somaxconn
+    value: 1024

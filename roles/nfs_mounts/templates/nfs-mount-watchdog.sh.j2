@@ -1,0 +1,16 @@
+#!/bin/sh
+# Managed by Ansible (nomadintosh: nfs_mounts role) - do not edit by hand.
+#
+# Runs every {{ nfs_mounts_watchdog_interval }}s via launchd (StartInterval, not a
+# persistent loop). For each share: if it's not currently mounted, mount it.
+# Combined with each mount's deadtimeout={{ nfs_mounts_deadtimeout }}, an
+# unresponsive NAS gets force-unmounted by the kernel after
+# {{ nfs_mounts_deadtimeout }}s, and the next run of this script notices it's gone
+# and remounts it - unattended recovery in roughly deadtimeout + one
+# watchdog interval, no manual intervention.
+{% for share in nfs_mounts_shares %}
+if ! /sbin/mount | /usr/bin/grep -Fq " on {{ share.mount_point }} (nfs"; then
+  /bin/mkdir -p "{{ share.mount_point }}"
+  /sbin/mount_nfs -o resvport,hard,vers={{ nfs_mounts_version }},deadtimeout={{ nfs_mounts_deadtimeout }},rsize={{ nfs_mounts_rsize }},wsize={{ nfs_mounts_wsize }},timeo={{ nfs_mounts_timeo }} {{ nas_host }}:{{ share.export }} "{{ share.mount_point }}"
+fi
+{% endfor %}

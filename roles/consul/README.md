@@ -18,7 +18,7 @@ Installs and configures a [Consul](https://developer.hashicorp.com/consul/docs) 
 
 ## Configuration
 
-All paths are driven by variables defined in [`inventory/group_vars/all.yml`](../../inventory/group_vars/all.yml):
+All paths are driven by variables defined in [`playbooks/group_vars/all.yml`](../../playbooks/group_vars/all.yml):
 
 | Variable | Default | Purpose |
 |---|---|---|

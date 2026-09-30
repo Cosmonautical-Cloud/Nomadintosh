@@ -1,0 +1,19 @@
+---
+- name: Install seaweedfs, macFUSE
+  community.general.homebrew:
+    name:
+      - seaweedfs
+
+- name: Install macFUSE
+  community.general.homebrew:
+    name: macfuse
+
+- name: Create Volume Path
+  become: true
+  when: seaweedfs.volume.enabled | default(false)
+  ansible.builtin.file:
+    path: "{{ seaweedfs.volume.path }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "staff"
+    mode: '0755'

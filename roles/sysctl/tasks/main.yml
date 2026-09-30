@@ -1,0 +1,41 @@
+---
+- name: Deploy sysctl tuning script
+  become: true
+  ansible.builtin.template:
+    src: sysctl-tuning.sh.j2
+    dest: "{{ config_dir }}/sysctl-tuning.sh"
+    mode: '0755'
+    owner: root
+    group: wheel
+
+- name: Create LaunchDaemon for sysctl tuning
+  become: true
+  ansible.builtin.template:
+    src: LaunchDaemons/cloud.cosmonautical.sysctl-tuning.plist.j2
+    dest: /Library/LaunchDaemons/cloud.cosmonautical.sysctl-tuning.plist
+    mode: '0644'
+    owner: root
+    group: wheel
+  register: sysctl_launchdaemon
+
+- name: Reload sysctl tuning LaunchDaemon
+  become: true
+  when: sysctl_launchdaemon.changed
+  block:
+    - name: Unload existing sysctl tuning LaunchDaemon (if loaded)
+      ansible.builtin.command:
+        argv:
+          - launchctl
+          - bootout
+          - system/cloud.cosmonautical.sysctl-tuning
+      failed_when: false
+      changed_when: false
+
+    - name: Load sysctl tuning LaunchDaemon
+      ansible.builtin.command:
+        argv:
+          - launchctl
+          - bootstrap
+          - system
+          - /Library/LaunchDaemons/cloud.cosmonautical.sysctl-tuning.plist
+      changed_when: true

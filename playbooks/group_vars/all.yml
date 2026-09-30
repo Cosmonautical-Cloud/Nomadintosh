@@ -1,0 +1,21 @@
+---
+# Loaded automatically for every play in this playbooks/ directory,
+# regardless of what inventory source is used to run them (Ansible loads
+# group_vars/host_vars relative to both the inventory source AND the
+# playbook directory) - unlike inventory/group_vars, this survives Semaphore
+# supplying its own inventory instead of inventory/hosts.yml.
+homebrew_dir: /opt/homebrew
+
+log_dir: "{{ homebrew_dir }}/var/log"
+
+config_dir: /etc
+
+working_dir: /opt
+
+# Same NAS also has a Nomad variable (cosmonautical/nas) holding this same
+# host/user, used by job templates via {{ with nomadVar "cosmonautical/nas" }}
+# - Ansible has no bridge into Nomad's variable store, so it's duplicated
+# here for the Ansible side (nfs_mounts role, and anything else provisioning
+# infra that needs to reach the NAS) rather than hardcoded per-role.
+nas_host: 10.10.37.32
+nas_user: "{{ ansible_user }}"

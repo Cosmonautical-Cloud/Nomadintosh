@@ -1,0 +1,42 @@
+---
+- name: Manage NFS mount watchdog
+  when: nfs_mounts_shares | length > 0
+  become: true
+  block:
+    - name: Deploy NFS mount watchdog script
+      ansible.builtin.template:
+        src: nfs-mount-watchdog.sh.j2
+        dest: "{{ config_dir }}/nfs-mount-watchdog.sh"
+        mode: '0755'
+        owner: root
+        group: wheel
+
+    - name: Create LaunchDaemon for NFS mount watchdog
+      ansible.builtin.template:
+        src: LaunchDaemons/cloud.cosmonautical.nfs-mount-watchdog.plist.j2
+        dest: /Library/LaunchDaemons/cloud.cosmonautical.nfs-mount-watchdog.plist
+        mode: '0644'
+        owner: root
+        group: wheel
+      register: nfs_mounts_watchdog_launchdaemon
+
+    - name: Reload NFS mount watchdog LaunchDaemon
+      when: nfs_mounts_watchdog_launchdaemon.changed
+      block:
+        - name: Unload existing NFS mount watchdog LaunchDaemon (if loaded)
+          ansible.builtin.command:
+            argv:
+              - launchctl
+              - bootout
+              - system/cloud.cosmonautical.nfs-mount-watchdog
+          failed_when: false
+          changed_when: false
+
+        - name: Load NFS mount watchdog LaunchDaemon
+          ansible.builtin.command:
+            argv:
+              - launchctl
+              - bootstrap
+              - system
+              - /Library/LaunchDaemons/cloud.cosmonautical.nfs-mount-watchdog.plist
+          changed_when: true

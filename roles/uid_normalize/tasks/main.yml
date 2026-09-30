@@ -1,0 +1,72 @@
+---
+- name: Normalize UID for {{ ansible_user }}
+  become: true
+  block:
+    - name: Read current UniqueID for {{ ansible_user }}
+      ansible.builtin.command:
+        argv:
+          - dscl
+          - .
+          - -read
+          - "/Users/{{ ansible_user }}"
+          - UniqueID
+      register: uid_normalize_current
+      changed_when: false
+
+    - name: Set current_uid fact
+      ansible.builtin.set_fact:
+        uid_normalize_current_uid: "{{ uid_normalize_current.stdout.split()[-1] }}"
+
+    - name: Change UID and re-own known paths
+      when: uid_normalize_current_uid != (uid_normalize_target | string)
+      block:
+        - name: Check whether the target UID already belongs to someone else
+          ansible.builtin.command:
+            argv:
+              - dscl
+              - .
+              - -search
+              - /Users
+              - UniqueID
+              - "{{ uid_normalize_target }}"
+          register: uid_normalize_conflict
+          changed_when: false
+          failed_when: false
+
+        - name: Abort if the target UID is already assigned to a different account
+          ansible.builtin.fail:
+            msg: >-
+              UID {{ uid_normalize_target }} is already assigned to another
+              account on this host ({{ uid_normalize_conflict.stdout }}) -
+              not proceeding. Pick a different uid_normalize_target or
+              resolve the conflict by hand first.
+          when: >-
+            uid_normalize_conflict.stdout is defined and
+            uid_normalize_conflict.stdout | trim | length > 0 and
+            (ansible_user not in uid_normalize_conflict.stdout)
+
+        - name: Change UniqueID via dscl
+          ansible.builtin.command:
+            argv:
+              - dscl
+              - .
+              - -change
+              - "/Users/{{ ansible_user }}"
+              - UniqueID
+              - "{{ uid_normalize_current_uid }}"
+              - "{{ uid_normalize_target | string }}"
+          changed_when: true
+
+        - name: Re-own known paths to the new UID
+          ansible.builtin.command:
+            argv:
+              - chown
+              - -R
+              - "{{ uid_normalize_target }}"
+              - "{{ item }}"
+          loop: "{{ uid_normalize_paths }}"
+          changed_when: true
+          # A path that doesn't exist yet on a freshly provisioned host
+          # (e.g. nomad_working_dir before the nomad role has ever run)
+          # shouldn't fail the whole play.
+          failed_when: false

@@ -21,7 +21,7 @@ Installs and configures a [Nomad](https://developer.hashicorp.com/nomad/docs) ag
 
 ## Configuration
 
-All paths are driven by variables defined in [`inventory/group_vars/all.yml`](../../inventory/group_vars/all.yml):
+All paths are driven by variables defined in [`playbooks/group_vars/all.yml`](../../playbooks/group_vars/all.yml):
 
 | Variable | Default | Purpose |
 |---|---|---|

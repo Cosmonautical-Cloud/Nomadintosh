@@ -8,6 +8,34 @@
       ansible.builtin.include_role:
         name: software_update
       when: ansible_facts['os_family'] == 'Darwin'
+      tags:
+        - software_update
+
+    - name: Apply sysctl tuning
+      ansible.builtin.include_role:
+        name: sysctl
+        apply:
+          tags:
+            - sysctl
+      when: ansible_facts['os_family'] == 'Darwin'
+      tags:
+        - sysctl
+
+    - name: Mount NFS shares
+      ansible.builtin.include_role:
+        name: nfs_mounts
+        apply:
+          tags:
+            - nfs_mounts
+      # Originally scoped to cosmonautical only - jellify had no route to
+      # the NAS. As of 2026-09-27, jellify was granted access to its own
+      # export (Jellify) on the same NAS (10.10.37.32, see nas_host in
+      # group_vars/all.yml), so it's included here too. Both groups' shares
+      # are still just entries in each host's own nfs_mounts_shares list -
+      # nothing about the role itself is cosmonautical-specific.
+      when: ansible_facts['os_family'] == 'Darwin' and ('cosmonautical' in group_names or 'jellify' in group_names)
+      tags:
+        - nfs_mounts
 
     - name: Install Homebrew
       ansible.builtin.include_role:
@@ -17,28 +45,67 @@
           - name: hashicorp/tap
         homebrew_install_packages: "{{ additional_homebrew_packages | default([]) }}"
       when: ansible_facts['os_family'] == 'Darwin'
+      tags:
+        - homebrew
 
     - name: Include Container role
       ansible.builtin.include_role:
         name: container
       when: container.enabled | default(false) and ansible_facts['os_family'] == 'Darwin'
+      tags:
+        - container
 
     - name: Include Docker Desktop role
       ansible.builtin.include_role:
         name: docker_desktop
       when: docker.enabled | default(false) and ansible_facts['os_family'] == 'Darwin'
+      tags:
+        - docker
+        - container-runtime
 
     - name: Include Podman role
       ansible.builtin.include_role:
         name: podman
       when: podman.enabled | default(false) and ansible_facts['os_family'] == 'Darwin'
+      tags:
+        - podman
+        - container-runtime
+
+    - name: Include Seaweedfs role
+      ansible.builtin.include_role:
+        name: seaweedfs
+      when: seaweedfs.master.enabled | default(false) or seaweedfs.volume.enabled | default(false)
+      tags:
+        - seaweedfs
 
     - name: Include Consul role
       ansible.builtin.include_role:
         name: consul
       when: ansible_facts['os_family'] == 'Darwin'
+      tags:
+        - consul
 
     - name: Include Nomad role
       ansible.builtin.include_role:
         name: nomad
       when: ansible_facts['os_family'] == 'Darwin'
+      tags:
+        - nomad
+
+    - name: Include CockroachDB role
+      ansible.builtin.include_role:
+        name: cockroachdb
+      when: ansible_facts['os_family'] == 'Darwin'
+      tags:
+        - cockroachdb
+
+    - name: Normalize UID (opt-in only, run explicitly via --tags uid_normalize)
+      ansible.builtin.include_role:
+        name: uid_normalize
+      when: ansible_facts['os_family'] == 'Darwin'
+      # "never" means this is skipped even by a plain --tags-less run of the
+      # whole playbook - only `--tags uid_normalize` (or `--tags never`)
+      # picks it up. See roles/uid_normalize/README.md for why.
+      tags:
+        - uid_normalize
+        - never

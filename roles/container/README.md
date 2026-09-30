@@ -25,7 +25,7 @@ The LaunchAgent invokes `container system start --enable-kernel-install` at logi
 | `homebrew_dir` | Path to the Homebrew prefix (e.g. `/opt/homebrew`). Used to resolve the `container` binary. |
 | `log_dir` | Directory where `container.log` is written. |
 
-These are expected to be set in [`inventory/group_vars/all.yml`](../../inventory/group_vars/all.yml).
+These are expected to be set in [`playbooks/group_vars/all.yml`](../../playbooks/group_vars/all.yml).
 
 ## Notes
 

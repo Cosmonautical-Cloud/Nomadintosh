@@ -29,6 +29,12 @@ client {
 
   preferred_address_family = "ipv4"
 
+  {% if seaweedfs.volume.enabled | default(false) and seaweedfs.volume.path is defined %}
+  host_volume "seaweedfs-data" {
+    path = "{{ seaweedfs.volume.path }}"
+  }
+  {% endif %}
+
   {% if volumes is defined and volumes | length > 0 %}
   {% for volume in volumes %}
   host_volume "{{ volume.name }}" {

@@ -1,0 +1,8 @@
+---
+# 1000 to match the Jellify NFS export's expected client UID - see README.
+uid_normalize_target: 1000
+
+uid_normalize_paths:
+  - "/Users/{{ ansible_user }}"
+  - "{{ homebrew_dir }}"
+  - "{{ nomad_working_dir }}"

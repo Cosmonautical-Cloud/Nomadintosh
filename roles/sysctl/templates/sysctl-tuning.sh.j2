@@ -1,0 +1,5 @@
+#!/bin/sh
+# Managed by Ansible (nomadintosh: sysctl role) - do not edit by hand.
+{% for item in sysctl_settings %}
+/usr/sbin/sysctl -w {{ item.name }}={{ item.value }}
+{% endfor %}
