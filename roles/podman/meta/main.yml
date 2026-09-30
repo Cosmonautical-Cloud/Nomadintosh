@@ -1,0 +1,6 @@
+---
+galaxy_info:
+  author: Violet Caulfield
+  description: Installs or removes Podman based on podman.enabled, managing a Podman machine on the host and a LaunchAgent to keep it running across reboots.
+  license: MIT
+dependencies: []

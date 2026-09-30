@@ -1,0 +1,6 @@
+---
+galaxy_info:
+  author: Violet Caulfield
+  description: Installs and configures a Nomad agent on the host.
+  license: MIT
+dependencies: []

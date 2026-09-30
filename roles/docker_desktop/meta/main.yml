@@ -1,0 +1,6 @@
+---
+galaxy_info:
+  author: Violet Caulfield
+  description: Installs or removes Docker Desktop on the host via Homebrew Cask, based on docker.enabled.
+  license: MIT
+dependencies: []

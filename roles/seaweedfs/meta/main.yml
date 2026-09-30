@@ -1,0 +1,6 @@
+---
+galaxy_info:
+  author: Violet Caulfield
+  description: Installs SeaweedFS and macFUSE via Homebrew, and creates the directory backing a host's SeaweedFS volume.
+  license: MIT
+dependencies: []

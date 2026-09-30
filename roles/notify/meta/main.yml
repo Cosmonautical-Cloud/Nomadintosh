@@ -1,0 +1,6 @@
+---
+galaxy_info:
+  author: Violet Caulfield
+  description: Posts a webhook notification. Used internally by other roles to send status updates on deployment events.
+  license: MIT
+dependencies: []

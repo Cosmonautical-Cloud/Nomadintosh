@@ -1,0 +1,6 @@
+---
+galaxy_info:
+  author: Violet Caulfield
+  description: Mounts the NAS's NFS exports persistently via a LaunchDaemon, alongside (not replacing) the existing SMB mounts each job manages itself.
+  license: MIT
+dependencies: []

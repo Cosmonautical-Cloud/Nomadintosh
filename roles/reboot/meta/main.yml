@@ -1,0 +1,6 @@
+---
+galaxy_info:
+  author: Violet Caulfield
+  description: Reboots the host and waits for it to come back online.
+  license: MIT
+dependencies: []

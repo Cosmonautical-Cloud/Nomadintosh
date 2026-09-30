@@ -1,0 +1,6 @@
+---
+galaxy_info:
+  author: Violet Caulfield
+  description: Derives and sets inventory-level Ansible facts used by downstream roles.
+  license: MIT
+dependencies: []
