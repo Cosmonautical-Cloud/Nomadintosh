@@ -43,7 +43,7 @@
       vars:
         homebrew_taps:
           - name: hashicorp/tap
-        homebrew_install_packages: "{{ additional_homebrew_packages | default([]) }}"
+        homebrew_installed_packages: "{{ additional_homebrew_packages | default([]) }}"
       when: ansible_facts['os_family'] == 'Darwin'
       tags:
         - homebrew
