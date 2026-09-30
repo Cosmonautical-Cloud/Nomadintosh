@@ -9,8 +9,9 @@
 # and remounts it - unattended recovery in roughly deadtimeout + one
 # watchdog interval, no manual intervention.
 {% for share in nfs_mounts_shares %}
-if ! /sbin/mount | /usr/bin/grep -Fq " on {{ share.mount_point }} (nfs"; then
-  /bin/mkdir -p "{{ share.mount_point }}"
-  /sbin/mount_nfs -o resvport,hard,vers={{ nfs_mounts_version }},deadtimeout={{ nfs_mounts_deadtimeout }},rsize={{ nfs_mounts_rsize }},wsize={{ nfs_mounts_wsize }},timeo={{ nfs_mounts_timeo }} {{ nas_host }}:{{ share.export }} "{{ share.mount_point }}"
+{% set mount_point = share.mount_point | default(nfs_mounts_default_dir + '/' + share.name) %}
+if ! /sbin/mount | /usr/bin/grep -Fq " on {{ mount_point }} (nfs"; then
+  /bin/mkdir -p "{{ mount_point }}"
+  /sbin/mount_nfs -o resvport,hard,vers={{ nfs_mounts_version }},deadtimeout={{ nfs_mounts_deadtimeout }},rsize={{ nfs_mounts_rsize }},wsize={{ nfs_mounts_wsize }},timeo={{ nfs_mounts_timeo }} {{ nas_host }}:{{ share.export }} "{{ mount_point }}"
 fi
 {% endfor %}

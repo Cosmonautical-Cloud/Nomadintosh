@@ -1,4 +1,9 @@
-{# Derive datacenter from this host's inventory group #}
+{# Nomad's own "datacenter" is just a job-placement tag - it's this host's
+   inventory group name, distinct from Consul's datacenter (see
+   consul.d/server.hcl.j2). existing_cluster_servers is optional - see that
+   template for when/why to set it; it's the same variable, merged into
+   retry_join here too so this host's Nomad agent can find servers that
+   aren't part of this run's own inventory. #}
 {% set datacenter = group_names | reject('equalto', 'all') | reject('equalto', 'ungrouped') | first %}
 {# Collect all Nomad server hostnames from inventory #}
 {% set ns = namespace(servers=[]) %}
@@ -7,13 +12,14 @@
 {%     set ns.servers = ns.servers + [host] %}
 {%   endif %}
 {% endfor %}
+{% set retry_join_hosts = (ns.servers + (existing_cluster_servers | default([]))) | unique %}
 datacenter = "{{ datacenter }}"
 name = "{{ inventory_hostname }}"
 
 data_dir   = "{{ nomad_working_dir }}"
 
 bind_addr  = "0.0.0.0"
-retry_join = ["{{ ns.servers | join('", "') }}"]
+retry_join = ["{{ retry_join_hosts | join('", "') }}"]
 
 # Control plane on this box
 server {

@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [1.2.0] - 2026-09-29
+
+### Added
+
+- `nfs_mounts_shares` entries no longer require `mount_point`: it now defaults to `nfs_mounts_default_dir` (`/Volumes`) + `/<name>` when omitted — the same path these shares' SMB counterparts used — so a share can be added from an inventory source that only supplies `{name, export}` (e.g. a Semaphore variable group) without also spelling out the mount path every time. Explicit `mount_point` values are unaffected.
+- `existing_consul_datacenter` and `existing_cluster_servers` (optional): when this run's own inventory doesn't include the real Consul/Nomad servers — e.g. a Semaphore run scoped to just the `jellify` group, with `cosmonautical`'s three servers living in a separate inventory source entirely — set these to join that already-running control plane instead of bootstrapping an isolated one from an empty server list. Mirrors the same two variables Nomaduntu's Consul/Nomad roles already support. `existing_consul_datacenter` also now falls back to this host's own inventory group name (instead of rendering an empty `datacenter`) if left unset and no `server.enabled` host is found in this run either.
+
+### Docs
+
+- Fixed `roles/nfs_mounts/README.md`, which claimed shares mount under `/Volumes/NFS/<name>` and default to a fixed Cosmonautical/Books/ROMs/Music list — both stale: the actual template mounts at `/Volumes/<name>` directly (the same path SMB used), and the role default is `[]` (no shares).
+- Updated `inventory/README.md`, the top-level `README.md`, and the `consul`/`nomad` role READMEs to document `nfs_mounts_shares`, `seaweedfs`, and the new `existing_consul_datacenter`/`existing_cluster_servers` variables — none of which were mentioned since they were added in 1.1.0. Also dropped the stale `minecraft.enabled` row from `inventory/README.md` (that role was removed in 1.1.0).
+
 ## [1.1.0] - 2026-09-29
 
 ### Added

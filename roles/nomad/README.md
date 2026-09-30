@@ -31,6 +31,10 @@ All paths are driven by variables defined in [`playbooks/group_vars/all.yml`](..
 
 Role-level defaults in `defaults/main.yml` set `plugin_dir`, `podman_driver_version`, and `podman_driver_name`.
 
-## No manual setup required
+## No manual setup required (usually)
 
-Datacenter name, peer list, and server count are all derived from the inventory at template time — no variables need to be set by hand.
+Datacenter name, peer list, and server count are all derived from the inventory at template time — no variables need to be set by hand, *provided* this run's own inventory actually includes the hosts with `server.enabled: true`.
+
+### Joining an existing external cluster
+
+Nomad's own `datacenter` is always this host's inventory group name (a job-placement tag, independent of Consul's) and is never overridden. `retry_join`, though, only finds servers that are part of *this run's* inventory — if they're not (e.g. a Semaphore run scoped to just the `jellify` group), set `existing_cluster_servers` (a list of hostnames/IPs, same variable the `consul` role uses) to merge in the real servers from elsewhere. See `templates/nomad.d/server.hcl.j2` and the `consul` role's README for the full explanation.

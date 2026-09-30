@@ -16,6 +16,17 @@ Hosts with `server: { enabled: true }` form the Nomad/Consul control plane for t
 
 Both Nomad and Consul are configured to `retry_join` every host across the full inventory that has `server: true`. You do not need to maintain this list manually.
 
+### Joining an existing external cluster
+
+If a run's own inventory doesn't include the real Consul/Nomad servers at all — e.g. a Semaphore run scoped to just the `jellify` group, with `cosmonautical`'s three servers living in a separate inventory source entirely — set two optional variables (in `all.vars`, a Semaphore variable group, or `--extra-vars`) instead of relying on the above:
+
+| Variable | Effect |
+|---|---|
+| `existing_consul_datacenter` | Fixes Consul's `datacenter` to this value instead of deriving it from whichever `server: true` host this run happens to find first. Nomad's own `datacenter` is unaffected — it's always this host's inventory group name, since it's purely a job-placement tag. |
+| `existing_cluster_servers` | A list of hostnames/IPs merged into `retry_join` for **both** Consul and Nomad, on top of whatever `server: true` hosts this run already found. |
+
+Left unset, this preserves the default behavior above — see `roles/consul/README.md` and `roles/nomad/README.md` for the exact precedence. Nomaduntu's own Consul/Nomad roles use the same two variables for the same purpose, so either OS's hosts can join a control plane whose servers live in the other repo's inventory.
+
 ---
 
 ## Inventory Structure
@@ -51,6 +62,8 @@ Variables defined directly under a hostname override any group-level `vars` for 
 | `ansible_password` | SSH password (if not using key auth) |
 | `ansible_become_password` | `sudo` password |
 | `additional_homebrew_packages` | List of extra Homebrew packages to install on every host |
+| `existing_consul_datacenter` | Fixes Consul's datacenter instead of deriving it from the inventory (see above) |
+| `existing_cluster_servers` | Extra hosts merged into Consul's and Nomad's `retry_join` (see above) |
 
 ### Host variables (set per-host)
 
@@ -61,9 +74,23 @@ Variables defined directly under a hostname override any group-level `vars` for 
 | `docker.enabled` | `false` | Installs Docker Desktop and enables the Nomad Docker driver |
 | `gh_actions.enabled` | `false` | Deploys a GitHub Actions self-hosted runner as a Nomad job |
 | `gh_actions.env` | _(absent)_ | Map of environment variables injected into the runner process (see below) |
-| `minecraft.enabled` | `false` | Deploys a Minecraft server as a Nomad job |
 | `container.enabled` | `false` | Installs Apple's Container CLI and registers a LaunchAgent |
+| `seaweedfs.master.enabled` / `seaweedfs.volume.enabled` | `false` | Installs SeaweedFS + macFUSE; an enabled volume registers a `seaweedfs-data` Nomad host volume |
+| `nfs_mounts_shares` | _(absent)_ | List of `{name, export, mount_point?}` NFS shares to mount (see below) |
 | `volumes` | _(absent)_ | List of host volumes to expose to the Nomad client (see below) |
+
+#### `nfs_mounts_shares` format
+
+Each entry needs `name` and `export`; `mount_point` is optional and defaults to `nfs_mounts_default_dir` (`/Volumes`) + `/<name>` — the same path these shares' SMB counterparts used:
+
+```yaml
+nfs_mounts_shares:
+  - name: Cosmonautical
+    export: /var/nfs/shared/Cosmonautical
+    mount_point: /Volumes/Cosmonautical   # explicit
+  - name: Jellify
+    export: /var/nfs/shared/Jellify        # defaults to /Volumes/Jellify
+```
 
 #### `gh_actions.env` format
 

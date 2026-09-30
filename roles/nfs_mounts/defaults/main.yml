@@ -1,17 +1,25 @@
 ---
 # No default shares - this is deliberately opt-in per host, set in
-# inventory/hosts.yml (or group_vars), NOT here. Mount points match their
-# SMB counterparts exactly (/Volumes/<name>, same as the osascript-based
-# mount_share() jobs use), which only works on a host once nothing there
-# still mounts that share over SMB at the same path - two different
-# filesystems can't occupy one mount point at once. A shared default here
-# would silently break any host that runs this role before every one of its
-# SMB-using jobs has been migrated - hosts adopt this one at a time
-# (betelgeuse first): drain it, reboot (clears any lingering SMB mount
-# cleanly), the LaunchDaemon mounts NFS fresh at these paths on boot, then
-# jobs that used to SMB-mount these paths themselves are updated to just
-# wait for the NFS mount instead.
+# inventory/hosts.yml (or group_vars), NOT here. A share's mount point
+# defaults to nfs_mounts_default_dir/<name> below, which matches the SMB
+# counterparts these shares replaced (/Volumes/<name>, same as the
+# osascript-based mount_share() jobs used), which only works on a host once
+# nothing there still mounts that share over SMB at the same path - two
+# different filesystems can't occupy one mount point at once. A shared
+# default here would silently break any host that runs this role before
+# every one of its SMB-using jobs has been migrated - hosts adopt this one
+# at a time (betelgeuse first): drain it, reboot (clears any lingering SMB
+# mount cleanly), the LaunchDaemon mounts NFS fresh at these paths on boot,
+# then jobs that used to SMB-mount these paths themselves are updated to
+# just wait for the NFS mount instead.
 nfs_mounts_shares: []
+
+# A share entry's mount_point is optional - when omitted, it defaults to
+# "{{ nfs_mounts_default_dir }}/<name>" (see above for why that has to match
+# the old SMB paths). Lets an inventory source (e.g. a Semaphore variable
+# group) list a share as just {name, export} without also spelling out its
+# mount path every time.
+nfs_mounts_default_dir: /Volumes
 
 # How long (seconds) an unresponsive mount is tolerated before the kernel
 # force-unmounts it - the watchdog's periodic check then notices it's gone
