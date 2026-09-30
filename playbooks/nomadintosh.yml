@@ -92,13 +92,6 @@
       tags:
         - nomad
 
-    - name: Include CockroachDB role
-      ansible.builtin.include_role:
-        name: cockroachdb
-      when: ansible_facts['os_family'] == 'Darwin'
-      tags:
-        - cockroachdb
-
     - name: Normalize UID (opt-in only, run explicitly via --tags uid_normalize)
       ansible.builtin.include_role:
         name: uid_normalize

@@ -76,21 +76,38 @@ Variables defined directly under a hostname override any group-level `vars` for 
 | `gh_actions.env` | _(absent)_ | Map of environment variables injected into the runner process (see below) |
 | `container.enabled` | `false` | Installs Apple's Container CLI and registers a LaunchAgent |
 | `seaweedfs.master.enabled` / `seaweedfs.volume.enabled` | `false` | Installs SeaweedFS + macFUSE; an enabled volume registers a `seaweedfs-data` Nomad host volume |
-| `nfs_mounts_shares` | _(absent)_ | List of `{name, export, mount_point?}` NFS shares to mount (see below) |
+| `nfs_mounts_shares` | _(absent)_ | List of `{share_export_path}` NFS shares to mount (see below) |
 | `volumes` | _(absent)_ | List of host volumes to expose to the Nomad client (see below) |
 
 #### `nfs_mounts_shares` format
 
-Each entry needs `name` and `export`; `mount_point` is optional and defaults to `nfs_mounts_default_dir` (`/Volumes`) + `/<name>` — the same path these shares' SMB counterparts used:
+Each entry needs only `share_export_path`; the mount point is always `volume_mount_path` (`/Volumes`) + `/<name>`, `<name>` being `share_export_path`'s final path component — the same path these shares' SMB counterparts used. Not overridable per-share:
 
 ```yaml
 nfs_mounts_shares:
-  - name: Cosmonautical
-    export: /var/nfs/shared/Cosmonautical
-    mount_point: /Volumes/Cosmonautical   # explicit
-  - name: Jellify
-    export: /var/nfs/shared/Jellify        # defaults to /Volumes/Jellify
+  - share_export_path: /var/nfs/shared/Cosmonautical   # mounts at /Volumes/Cosmonautical
+  - share_export_path: /var/nfs/shared/Jellify          # mounts at /Volumes/Jellify
 ```
+
+Define it once under a group's `vars:` when every host in the group mounts the same shares, rather than repeating the list per host (see `cosmonautical` and `jellify` in the actual `inventory/hosts.yml`, gitignored — not the example below). If one host in the group also needs its own unique share on top of the group's shared ones — e.g. each `cosmonautical` host has a personal backup share named after itself — build the list with Jinja instead of hardcoding a `name` per host, using the `inventory_hostname_short` magic variable:
+
+```yaml
+cosmonautical:
+  vars:
+    nfs_mounts_shares: >-
+      {{
+        [
+          {'share_export_path': '/var/nfs/shared/Cosmonautical'},
+          {'share_export_path': '/var/nfs/shared/Books'},
+        ] + [
+          {'share_export_path': '/var/nfs/shared/' ~ (inventory_hostname_short | capitalize)},
+        ]
+      }}
+```
+
+On `cassiopeia.cosmonautical.cloud` this resolves to `Cosmonautical`, `Books`, and `Cassiopeia`; on `taurus.cosmonautical.cloud` it resolves to the same two shared shares plus `Taurus`. No per-host override needed.
+
+The `jellify` group's `Jellify` share was granted 2026-09-27 on the same NAS as `cosmonautical` (`10.10.37.32`, see `nas_host` in `playbooks/group_vars/all.yml`) — its mount point (`/Volumes/Jellify`) has to match what `nomad-jobs`' `minecraft.nomad.hcl` expects, since that job's host volume points at this path.
 
 #### `gh_actions.env` format
 

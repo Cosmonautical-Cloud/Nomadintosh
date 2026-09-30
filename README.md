@@ -46,7 +46,7 @@ Hosts are organised into named groups; the group name becomes the Consul/Nomad [
 | `podman.enabled` | `true` / _(absent)_ | Installs and configures the Podman task driver |
 | `docker.enabled` | `true` / _(absent)_ | Installs and configures Docker Desktop |
 | `volumes` | list of `{name, path}` | Configures [Nomad host volumes](https://developer.hashicorp.com/nomad/docs/configuration/client#host_volume) on the client |
-| `nfs_mounts_shares` | list of `{name, export, mount_point?}` | NFS shares to mount from `nas_host` via a watchdog LaunchDaemon. `mount_point` is optional — defaults to `nfs_mounts_default_dir` (`/Volumes`) + `/<name>`, matching the SMB paths these shares replace |
+| `nfs_mounts_shares` | list of `{share_export_path}` | NFS shares to mount from `nas_host` via a watchdog LaunchDaemon. Mount point is always `volume_mount_path` (`/Volumes`) + `/<name>`, `<name>` being `share_export_path`'s final path component — matches the SMB paths these shares replace |
 | `seaweedfs.master.enabled` / `seaweedfs.volume.enabled` | `true` / _(absent)_ | Installs SeaweedFS + macFUSE; an enabled volume registers a `seaweedfs-data` Nomad host volume |
 | `existing_consul_datacenter` | _(absent)_ | Fixes Consul's `datacenter` when this run's own inventory doesn't include the real servers — see the `consul` role's README |
 | `existing_cluster_servers` | list of hostnames/IPs | Extra hosts merged into Consul's and Nomad's `retry_join`, for the same reason as above |
@@ -110,8 +110,7 @@ For every host, the playbook performs the following steps:
 9. **SeaweedFS** _(hosts with `seaweedfs.master.enabled` / `seaweedfs.volume.enabled`)_ — installs SeaweedFS + macFUSE via Homebrew and creates the host's volume directory.
 10. **Consul** — creates config/data directories, installs Consul via Homebrew, templates [`server.hcl`](https://developer.hashicorp.com/consul/docs/reference/agent/configuration-file) with datacenter, node name, server/client mode, and [`retry_join`](https://developer.hashicorp.com/consul/docs/reference/agent/configuration-file/general#retry_join) derived from inventory (or `existing_consul_datacenter`/`existing_cluster_servers`, if this run's inventory doesn't include the real servers — see the `consul` role's README), and registers a LaunchAgent.
 11. **Nomad** — creates config/data directories, installs Nomad via Homebrew, templates [`server.hcl`](https://developer.hashicorp.com/nomad/docs/configuration) (including [`bootstrap_expect`](https://developer.hashicorp.com/nomad/docs/configuration/server#bootstrap_expect) and [`retry_join`](https://developer.hashicorp.com/nomad/docs/configuration/server_join), also honoring `existing_cluster_servers`), configures any enabled task driver plugins (`nomad-driver-container`, `nomad-driver-podman`), and registers a LaunchAgent.
-12. **CockroachDB** — installs and configures CockroachDB where enabled.
-13. **UID normalize** _(opt-in only, `--tags uid_normalize`)_ — normalizes `ansible_user`'s UID to a fixed value; skipped by a plain run.
+12. **UID normalize** _(opt-in only, `--tags uid_normalize`)_ — normalizes `ansible_user`'s UID to a fixed value; skipped by a plain run.
 
 Services are managed as macOS LaunchAgents (Nomad, Consul, and optionally the Podman machine and Apple Container system).
 

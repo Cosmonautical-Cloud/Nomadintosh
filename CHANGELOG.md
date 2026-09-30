@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [1.2.1] - 2026-09-29
+
+### Changed
+
+- **Breaking:** `nfs_mounts_shares` entries now take only `share_export_path` (renamed from `export`). `name` and `mount_point` are gone — the mount point is always `volume_mount_path` (renamed from `nfs_mounts_default_dir`, still `/Volumes`) + `/<name>`, with `<name>` derived from `share_export_path`'s final path component, so a share's name is never spelled out twice. Existing inventory entries need updating: `{name, export, mount_point?}` → `{share_export_path}`.
+
+### Removed
+
+- CockroachDB role inclusion in `playbooks/nomadintosh.yml`, added in 1.1.0 but the `cockroachdb` role itself was never added under `roles/` - every Darwin run failed at that task. Also dropped the stale reference from `README.md`.
+
 ## [1.2.0] - 2026-09-29
 
 ### Added
