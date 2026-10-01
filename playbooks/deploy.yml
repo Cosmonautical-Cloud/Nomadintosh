@@ -97,14 +97,3 @@
       when: ansible_facts['os_family'] == 'Darwin'
       tags:
         - nomad
-
-    - name: Normalize UID (opt-in only, run explicitly via --tags uid_normalize)
-      ansible.builtin.include_role:
-        name: uid_normalize
-      when: ansible_facts['os_family'] == 'Darwin'
-      # "never" means this is skipped even by a plain --tags-less run of the
-      # whole playbook - only `--tags uid_normalize` (or `--tags never`)
-      # picks it up. See roles/uid_normalize/README.md for why.
-      tags:
-        - uid_normalize
-        - never

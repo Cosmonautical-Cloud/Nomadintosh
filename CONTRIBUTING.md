@@ -30,7 +30,7 @@ ansible-lint      # must pass with 0 failures
 yamllint .        # must pass with 0 errors
 ```
 
-The CI workflow also runs a syntax check (`ansible-playbook --syntax-check`) against the example inventory. If your changes introduce new roles or task files, make sure they are reachable from `playbooks/nomadintosh.yml` and will parse cleanly with the variables defined in `inventory/hosts.example.yml`.
+The CI workflow also runs a syntax check (`ansible-playbook --syntax-check`) against the example inventory. If your changes introduce new roles or task files, make sure they are reachable from `playbooks/deploy.yml` and will parse cleanly with the variables defined in `inventory/hosts.example.yml`.
 
 ## Pull requests
 

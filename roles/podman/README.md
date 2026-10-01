@@ -13,7 +13,7 @@ Installs or removes [Podman](https://podman.io/) based on `podman.enabled`, mana
 
 `podman.enabled: false` (`tasks/teardown.yml`): stops and removes any existing Podman machine, unloads the LaunchAgent (`launchctl bootout`, if loaded) and removes its plist, then uninstalls Podman via Homebrew. Nomad's `nomad-driver-podman` plugin is torn down separately by the `nomad` role (see its README), which is also conditioned on `podman.enabled`.
 
-`podman` absent entirely — this role isn't included at all (see `playbooks/nomadintosh.yml`); a host that's never mentioned `podman` is left alone either way.
+`podman` absent entirely — this role isn't included at all (see `playbooks/deploy.yml`); a host that's never mentioned `podman` is left alone either way.
 
 ## Host variables
 

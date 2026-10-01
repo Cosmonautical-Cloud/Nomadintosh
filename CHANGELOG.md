@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [3.0.0] - 2026-10-01
+
+### Changed
+
+- **Breaking:** `playbooks/nomadintosh.yml` renamed to `playbooks/deploy.yml`. Anything invoking it by filename (`ansible-playbook playbooks/nomadintosh.yml`, `deploy.zsh`/`check.zsh`/`lint.zsh`) or by FQCN (`ansible.builtin.import_playbook: cosmonautical.nomadintosh.nomadintosh`, used by `Nomadable`, bumped alongside this) needs updating to `playbooks/deploy.yml` / `cosmonautical.nomadintosh.deploy`.
+- **Breaking:** `uid_normalize` is no longer part of `playbooks/deploy.yml` at all — it's now its own playbook, `playbooks/uid_normalize.yml`, dropping the `tags: [uid_normalize, never]` trick it used to rely on to stay out of a plain deploy run. `--tags uid_normalize` against `playbooks/deploy.yml` no longer does anything; use `ansible-playbook playbooks/uid_normalize.yml --limit <host>` instead. Same opt-in-only intent, now expressed as a separate entry point instead of a tag hack.
+- `playbooks/reboot.yml` now runs the `reboot` role via `include_role` instead of duplicating its one task inline — the role existed already but the playbook wasn't using it. No behavior change.
+
 ## [2.0.2] - 2026-10-01
 
 ### Docs

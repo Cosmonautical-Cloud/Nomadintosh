@@ -16,7 +16,7 @@ The LaunchAgent invokes `container system start --enable-kernel-install` at logi
 
 `container.enabled: false` (`tasks/teardown.yml`): unloads the LaunchAgent (`launchctl bootout`, if loaded), removes its plist, and uninstalls the `container` package via Homebrew. Nomad's `nomad-driver-container` plugin is torn down separately by the `nomad` role (see its README), which is also conditioned on `container.enabled`.
 
-`container` absent entirely — this role isn't included at all (see `playbooks/nomadintosh.yml`); a host that's never mentioned `container` is left alone either way.
+`container` absent entirely — this role isn't included at all (see `playbooks/deploy.yml`); a host that's never mentioned `container` is left alone either way.
 
 ## Host variables
 

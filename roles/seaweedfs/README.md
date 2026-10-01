@@ -13,7 +13,7 @@ This role only installs the software and prepares the volume directory — it do
 
 | Variable | Values | Effect |
 |---|---|---|
-| `seaweedfs.master.enabled` | `true` / _(absent)_ | Include this role for the host, alongside `seaweedfs.volume.enabled` (see `playbooks/nomadintosh.yml`'s gate). Doesn't affect this role's own tasks. |
+| `seaweedfs.master.enabled` | `true` / _(absent)_ | Include this role for the host, alongside `seaweedfs.volume.enabled` (see `playbooks/deploy.yml`'s gate). Doesn't affect this role's own tasks. |
 | `seaweedfs.volume.enabled` | `true` / _(absent)_ | Include this role for the host, and create `seaweedfs.volume.path` as a directory. |
 | `seaweedfs.volume.path` | path | Directory to create for the volume's data (e.g. `/opt/seaweedfs/data`). Required when `seaweedfs.volume.enabled: true`. |
 

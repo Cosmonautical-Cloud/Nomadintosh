@@ -10,13 +10,13 @@ expects 1000 to match the NAS-side account.
 **Deliberately not part of any normal deployment pass.** This changes a live
 user account's numeric identity and re-owns files by UID - a mistake here
 can lock the account out of its own files or silently orphan things this
-role doesn't know to re-own. Tasks here are tagged `never`, Ansible's
-built-in "skip unless explicitly named" tag, so a plain `./deploy.zsh` run
-(or any tags-less/`--tags` run that doesn't name it) never touches this.
-Run it deliberately, one host at a time:
+role doesn't know to re-own. It's its own playbook, `playbooks/uid_normalize.yml`,
+entirely separate from `playbooks/deploy.yml` - a plain `./deploy.zsh` run never
+touches this; it only runs when invoked by its own filename. Run it
+deliberately, one host at a time:
 
 ```
-ansible-playbook playbooks/nomadintosh.yml --limit galileo.jellify.app --tags uid_normalize
+ansible-playbook playbooks/uid_normalize.yml --limit galileo.jellify.app
 ```
 
 Ideally with the target user logged out of any GUI session on that host

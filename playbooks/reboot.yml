@@ -5,5 +5,5 @@
   become: true
   tasks:
     - name: Reboot Node
-      ansible.builtin.reboot:
-        reboot_timeout: 300
+      ansible.builtin.include_role:
+        name: reboot

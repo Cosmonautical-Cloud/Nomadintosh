@@ -3,7 +3,7 @@ namespace: cosmonautical
 name: nomadintosh
 authors:
   - Violet Caulfield
-version: 2.0.2
+version: 3.0.0
 readme: README.md
 description: An Ansible collection for deploying Nomad + Consul on a macOS cluster.
 license:

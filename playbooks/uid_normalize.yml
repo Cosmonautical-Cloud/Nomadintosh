@@ -1,0 +1,9 @@
+---
+- name: Normalize UID
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Normalize UID for ansible_user
+      ansible.builtin.include_role:
+        name: uid_normalize
+      when: ansible_facts['os_family'] == 'Darwin'

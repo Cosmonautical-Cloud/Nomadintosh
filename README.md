@@ -73,8 +73,9 @@ Ansible Galaxy has no synopsis/description field for playbooks shipped inside a 
 
 | Playbook | Description |
 |---|---|
-| `playbooks/nomadintosh.yml` | Full deployment — installs and configures Consul, Nomad, and every optional role (`container`, `podman`, `docker_desktop`, `seaweedfs`, `sysctl`, `nfs_mounts`, `uid_normalize`, `software_update`) according to each host's inventory variables. See [What it does](#what-it-does) below for the full breakdown. Idempotent — safe to rerun. |
-| `playbooks/reboot.yml` | Reboots every host in the inventory one at a time (`serial: 1`) via Ansible's `reboot` module, waiting up to 5 minutes for each to come back before moving to the next. Used to clear macOS's lingering stale IPv6 `utunN` routes and pick up Command Line Tools / OS updates — see the `reboot` role's [README](roles/reboot/README.md). Does not run the full deployment; pair it with `playbooks/nomadintosh.yml` if a deploy is also needed. |
+| `playbooks/deploy.yml` | Full deployment — installs and configures Consul, Nomad, and every optional role (`container`, `podman`, `docker_desktop`, `seaweedfs`, `sysctl`, `nfs_mounts`, `software_update`) according to each host's inventory variables. See [What it does](#what-it-does) below for the full breakdown. Idempotent — safe to rerun. |
+| `playbooks/reboot.yml` | Reboots every host in the inventory one at a time (`serial: 1`) via Ansible's `reboot` module, waiting up to 5 minutes for each to come back before moving to the next. Used to clear macOS's lingering stale IPv6 `utunN` routes and pick up Command Line Tools / OS updates — see the `reboot` role's [README](roles/reboot/README.md). Does not run the full deployment; pair it with `playbooks/deploy.yml` if a deploy is also needed. |
+| `playbooks/uid_normalize.yml` | Changes `ansible_user`'s UID to a fixed value and re-owns their known local directories to match — needed on hosts using the Jellify NFS export. **Not part of a normal deployment pass** — mutates a live user account's numeric identity; run it deliberately, one host at a time, with `--limit`. See the `uid_normalize` role's [README](roles/uid_normalize/README.md) before using it. |
 
 ### Running them
 
@@ -99,7 +100,7 @@ Serial Reboot all hosts in the inventory:
 To limit execution to a single host or group, you can also pass `--limit` directly to the underlying playbook:
 
 ```zsh
-ansible-playbook -i inventory/hosts.yml playbooks/nomadintosh.yml --limit <hostname>
+ansible-playbook -i inventory/hosts.yml playbooks/deploy.yml --limit <hostname>
 ```
 
 ## What it does
@@ -117,9 +118,8 @@ For every host, the playbook performs the following steps:
 9. **SeaweedFS** _(hosts with `seaweedfs.master.enabled` / `seaweedfs.volume.enabled`)_ — installs SeaweedFS via Homebrew and creates the host's volume directory.
 10. **Consul** — creates config/data directories, installs Consul via Homebrew, templates [`server.hcl`](https://developer.hashicorp.com/consul/docs/reference/agent/configuration-file) with datacenter, node name, server/client mode, and [`retry_join`](https://developer.hashicorp.com/consul/docs/reference/agent/configuration-file/general#retry_join) derived from inventory (or `existing_consul_datacenter`/`existing_cluster_servers`, if this run's inventory doesn't include the real servers — see the `consul` role's README), and registers a LaunchAgent.
 11. **Nomad** — creates config/data directories, installs Nomad via Homebrew, templates [`server.hcl`](https://developer.hashicorp.com/nomad/docs/configuration) (including [`bootstrap_expect`](https://developer.hashicorp.com/nomad/docs/configuration/server#bootstrap_expect) and [`retry_join`](https://developer.hashicorp.com/nomad/docs/configuration/server_join), also honoring `existing_cluster_servers`), configures any enabled task driver plugins (`nomad-driver-container`, `nomad-driver-podman`), and registers a LaunchAgent.
-12. **UID normalize** _(opt-in only, `--tags uid_normalize`)_ — normalizes `ansible_user`'s UID to a fixed value; skipped by a plain run.
 
-Services are managed as macOS LaunchAgents (Nomad, Consul, and optionally the Podman machine and Apple Container system).
+Services are managed as macOS LaunchAgents (Nomad, Consul, and optionally the Podman machine and Apple Container system). UID normalization is not part of this playbook — see `playbooks/uid_normalize.yml` above.
 
 ## Notifications
 

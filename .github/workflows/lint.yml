@@ -41,4 +41,4 @@ jobs:
         run: ansible-lint
 
       - name: Syntax check
-        run: ansible-playbook playbooks/nomadintosh.yml -i inventory/hosts.example.yml --syntax-check
+        run: ansible-playbook playbooks/deploy.yml -i inventory/hosts.example.yml --syntax-check

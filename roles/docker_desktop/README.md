@@ -6,7 +6,7 @@ Installs or removes [Docker Desktop](https://www.docker.com/products/docker-desk
 
 - `docker.enabled: true` — installs the `docker-desktop` cask if not already present.
 - `docker.enabled: false` — uninstalls it if present. Nomad's `docker` plugin config is already conditioned on `docker.enabled` in `roles/nomad/templates/nomad.d/server.hcl.j2`, so disabling here also drops it from `server.hcl` on the same run.
-- `docker` absent entirely — this role isn't included at all (see `playbooks/nomadintosh.yml`); a host that's never mentioned `docker` is left alone either way.
+- `docker` absent entirely — this role isn't included at all (see `playbooks/deploy.yml`); a host that's never mentioned `docker` is left alone either way.
 
 ## Host variables
 

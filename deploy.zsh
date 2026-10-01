@@ -89,32 +89,32 @@ build_command() {
 case $choice in
     1)
         print_info "Running full deployment..."
-        $(build_command "playbooks/nomadintosh.yml" "")
+        $(build_command "playbooks/deploy.yml" "")
         ;;
     2)
         print_info "Installing Consul only..."
-        $(build_command "playbooks/nomadintosh.yml" "consul")
+        $(build_command "playbooks/deploy.yml" "consul")
         ;;
     3)
         print_info "Installing Nomad only..."
-        $(build_command "playbooks/nomadintosh.yml" "nomad")
+        $(build_command "playbooks/deploy.yml" "nomad")
         ;;
     4)
         print_info "Installing Consul and Nomad..."
-        $(build_command "playbooks/nomadintosh.yml" "consul,nomad")
+        $(build_command "playbooks/deploy.yml" "consul,nomad")
         ;;
     5)
         print_info "Installing CockroachDB..."
-        $(build_command "playbooks/nomadintosh.yml" "cockroachdb")
+        $(build_command "playbooks/deploy.yml" "cockroachdb")
         ;;
     6)
         print_info "Installing Container runtime..."
         echo ""
         read "?Choose: (1) Docker Desktop or (2) Podman? [1-2]: " container_choice
         if [ "$container_choice" = "1" ]; then
-            $(build_command "playbooks/nomadintosh.yml" "docker")
+            $(build_command "playbooks/deploy.yml" "docker")
         elif [ "$container_choice" = "2" ]; then
-            $(build_command "playbooks/nomadintosh.yml" "podman")
+            $(build_command "playbooks/deploy.yml" "podman")
         else
             echo -e "${RED}Invalid choice${NC}"
             exit 1
@@ -122,7 +122,7 @@ case $choice in
         ;;
     7)
         print_info "Installing software updates..."
-        $(build_command "playbooks/nomadintosh.yml" "software_update")
+        $(build_command "playbooks/deploy.yml" "software_update")
         ;;
     8)
         print_info "Custom component selection"
@@ -139,7 +139,7 @@ case $choice in
         echo ""
         read "?Enter tags (comma-separated, e.g., 'consul,nomad'): " tags
         print_info "Running deployment with tags: $tags"
-        $(build_command "playbooks/nomadintosh.yml" "$tags")
+        $(build_command "playbooks/deploy.yml" "$tags")
         ;;
     9)
         print_info "Exiting..."
