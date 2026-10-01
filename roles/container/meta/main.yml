@@ -1,6 +1,7 @@
 ---
 galaxy_info:
   author: Violet Caulfield
-  description: Installs or removes Apple's Container CLI based on container.enabled, registering it as a LaunchAgent so the container system starts automatically at login.
+  description: Installs or removes Apple's Container CLI based on container.enabled, registering it as a LaunchAgent so the container system starts at login.
   license: MIT
+  min_ansible_version: "2.15"
 dependencies: []

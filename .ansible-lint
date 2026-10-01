@@ -8,6 +8,11 @@ skip_list:
   # state: latest is intentional — this tool is designed to keep homelab
   # nodes up to date on every run.
   - package-latest
+  # These are public, cross-role inventory variables the user sets directly
+  # in their own group_vars/host_vars (notify_enabled, volume_mount_path,
+  # etc.) — renaming them to carry a role prefix would break every existing
+  # inventory using this collection.
+  - var-naming[no-role-prefix]
 
 warn_list:
   # softwareupdate --download has no reliable stdout to detect changes;

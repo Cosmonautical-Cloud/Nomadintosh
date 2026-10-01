@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [3.1.2] - 2026-10-01
+
+### Fixed
+
+CI's `ansible-lint` job (`profile: moderate`) was failing. Fixing the lowest-tier violation first (`schema[meta]`) revealed that `profile: moderate` makes ansible-lint stop evaluating higher-tier rules entirely once a lower tier ('min') already fails — so `galaxy[tags]`, `meta-runtime[unsupported-version]`, `no-handler`, `no-changed-when`, and `risky-file-permissions` were never actually being checked, not passing. All of the below needed fixing together to get a real passing run, not just the originally-visible `schema[meta]` list:
+
+- `roles/*/meta/main.yml` (all 13 roles): added `galaxy_info.min_ansible_version: "2.15"`, the required property `schema[meta]` was failing on.
+- `galaxy.yml`: added the `infrastructure` tag — `galaxy[tags]` requires at least one tag from a fixed allowed set; none of the existing tags (`nomad`, `consul`, `macos`, `homelab`, `hashicorp`) qualified.
+- `meta/runtime.yml`: `requires_ansible: ">=2.15"` → `">=2.15.0"` — `meta-runtime[unsupported-version]` requires a full major.minor.patch version.
+- `roles/container/meta/main.yml`: trimmed the role description (dropped the redundant word "automatically") to fit `yaml[line-length]`'s 160-character limit.
+
+### Changed
+
+- `.ansible-lint`: added `var-naming[no-role-prefix]` to `skip_list`. The 3 variables it flagged (`volume_mount_path`, `notify_enabled` ×2) are public, cross-role inventory variables the user sets directly in their own `group_vars`/`host_vars` — renaming them to carry a role prefix would break every existing inventory using this collection, so this is a deliberate, permanent suppression rather than something to fix.
+
 ## [3.1.1] - 2026-10-01
 
 ### Docs

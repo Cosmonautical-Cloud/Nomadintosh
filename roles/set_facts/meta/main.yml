@@ -3,4 +3,5 @@ galaxy_info:
   author: Violet Caulfield
   description: Derives and sets inventory-level Ansible facts used by downstream roles.
   license: MIT
+  min_ansible_version: "2.15"
 dependencies: []

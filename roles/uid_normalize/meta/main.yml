@@ -3,4 +3,5 @@ galaxy_info:
   author: Violet Caulfield
   description: Changes ansible_user's UID on macOS to a fixed value and re-owns their known local directories to match, for hosts on the Jellify NFS export.
   license: MIT
+  min_ansible_version: "2.15"
 dependencies: []
