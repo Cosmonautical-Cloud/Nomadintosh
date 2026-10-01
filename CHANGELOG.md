@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [2.0.2] - 2026-10-01
+
+### Docs
+
+- Added a `## Playbooks` section to the README listing both `playbooks/nomadintosh.yml` and `playbooks/reboot.yml` with a one-line description each. Confirmed (by reading `galaxy_importer`'s `PlaybookLoader.load()`, which never sets a `description` on `schema.Content` the way `RoleLoader.load()` does from `meta/main.yml`) that Galaxy has no synopsis field for playbook content at all — unlike roles, there's no file or format that would make one show up in the Galaxy UI, so the README is the actual canonical place this gets documented. `playbooks/reboot.yml` in particular had no top-level README coverage before this (only `roles/reboot/README.md` mentioned it).
+
 ## [2.0.1] - 2026-10-01
 
 ### Fixed

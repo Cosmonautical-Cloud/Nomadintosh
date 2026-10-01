@@ -67,7 +67,16 @@ galileo.jellify.app:
     enabled: true
 ```
 
-## Running the playbook
+## Playbooks
+
+Ansible Galaxy has no synopsis/description field for playbooks shipped inside a collection (unlike roles, which get one from `meta/main.yml`), so this is the canonical place either one is documented:
+
+| Playbook | Description |
+|---|---|
+| `playbooks/nomadintosh.yml` | Full deployment — installs and configures Consul, Nomad, and every optional role (`container`, `podman`, `docker_desktop`, `seaweedfs`, `sysctl`, `nfs_mounts`, `uid_normalize`, `software_update`) according to each host's inventory variables. See [What it does](#what-it-does) below for the full breakdown. Idempotent — safe to rerun. |
+| `playbooks/reboot.yml` | Reboots every host in the inventory one at a time (`serial: 1`) via Ansible's `reboot` module, waiting up to 5 minutes for each to come back before moving to the next. Used to clear macOS's lingering stale IPv6 `utunN` routes and pick up Command Line Tools / OS updates — see the `reboot` role's [README](roles/reboot/README.md). Does not run the full deployment; pair it with `playbooks/nomadintosh.yml` if a deploy is also needed. |
+
+### Running them
 
 Run a full deployment:
 
