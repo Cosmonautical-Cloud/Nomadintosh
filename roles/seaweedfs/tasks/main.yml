@@ -1,12 +1,8 @@
 ---
-- name: Install seaweedfs, macFUSE
+- name: Install seaweedfs
   community.general.homebrew:
     name:
       - seaweedfs
-
-- name: Install macFUSE
-  community.general.homebrew:
-    name: macfuse
 
 - name: Create Volume Path
   become: true

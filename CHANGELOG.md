@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [1.6.0] - 2026-10-01
+
+### Removed
+
+- `seaweedfs` role no longer installs macFUSE. It was only ever needed to mount SeaweedFS volumes as a local filesystem, and FUSE-mounted SeaweedFS has proven unreliable for latency/consistency-sensitive workloads (Postgres, SQLite) in this homelab - nothing here still depends on that mount path. Installing `seaweedfs` itself (the master/volume/filer/S3 processes) is unaffected. Doesn't uninstall macFUSE from hosts that already have it; that's a manual cleanup if wanted.
+
 ## [1.5.2] - 2026-10-01
 
 ### Fixed

@@ -1,12 +1,11 @@
 # seaweedfs
 
-Installs [SeaweedFS](https://github.com/seaweedfs/seaweedfs) and macFUSE via Homebrew, and creates the directory backing a host's SeaweedFS volume.
+Installs [SeaweedFS](https://github.com/seaweedfs/seaweedfs) via Homebrew, and creates the directory backing a host's SeaweedFS volume.
 
 ## What it does
 
 1. Installs `seaweedfs` via Homebrew.
-2. Installs `macfuse` via Homebrew (required to mount SeaweedFS volumes as a filesystem).
-3. If `seaweedfs.volume.enabled: true`, creates `seaweedfs.volume.path` as a directory owned by `ansible_user` (group `staff`, mode `0755`).
+2. If `seaweedfs.volume.enabled: true`, creates `seaweedfs.volume.path` as a directory owned by `ansible_user` (group `staff`, mode `0755`).
 
 This role only installs the software and prepares the volume directory — it does not itself register a SeaweedFS host volume with Nomad, start a master/volume server, or template any SeaweedFS configuration. Wiring a `seaweedfs-data` host volume into `nomad.d/server.hcl` is handled by the [`nomad`](../nomad/README.md) role when `seaweedfs.volume.enabled` is set; actually running the master/volume processes is a Nomad job, not this role.
 
@@ -32,4 +31,4 @@ cassiopeia.cosmonautical.cloud:
 
 ## Notes
 
-- macFUSE-mounted SeaweedFS volumes have proven unstable for latency/consistency-sensitive workloads (Postgres, SQLite) in this homelab. Don't back that kind of workload with a FUSE-mounted SeaweedFS volume — use SeaweedFS's S3/WebDAV interfaces, or plain local/NFS storage, for anything that can't tolerate it.
+- This role no longer installs macFUSE. FUSE-mounted SeaweedFS volumes proved unstable for latency/consistency-sensitive workloads (Postgres, SQLite) in this homelab, and nothing here depends on mounting SeaweedFS as a filesystem anymore — use SeaweedFS's S3/WebDAV interfaces, or plain local/NFS storage, for anything that needs a real filesystem.
