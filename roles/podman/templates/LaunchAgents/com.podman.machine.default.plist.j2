@@ -4,14 +4,13 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.podman.machine.default</string>
+    <string>{{ podman_launchagent_label }}</string>
 
     <key>ProgramArguments</key>
     <array>
-        <string>{{ homebrew_dir }}/bin/podman</string>
-        <string>machine</string>
-        <string>start</string>
-        <string>podman-machine-default</string>
+{% for arg in podman_launchagent_program_args %}
+        <string>{{ arg }}</string>
+{% endfor %}
     </array>
 
     <key>RunAtLoad</key>

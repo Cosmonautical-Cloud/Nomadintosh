@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [1.6.3] - 2026-10-01
+
+### Changed
+
+- LaunchAgent/LaunchDaemon plists for `nomad`, `consul`, `podman`, `container`, `sysctl`, and `nfs_mounts` no longer hardcode their `Label`, `ProgramArguments`, log paths, or working directory directly in the template — each is now a role-level default in that role's `defaults/main.yml`, set to the value the plist previously hardcoded. Overriding any of them (e.g. to add an agent flag, or rename a log file) no longer means editing the template itself. The task files for the same six roles were updated to reference those same variables too, instead of repeating the literal label/path a second or third time across `template:`/`stat:`/`launchctl` argv.
+- Added `launch_agents_dir` (`/Users/{{ ansible_user }}/Library/LaunchAgents`) and `launch_daemons_dir` (`/Library/LaunchDaemons`) to `playbooks/group_vars/all.yml`, replacing the literal path that was repeated across all six roles above.
+
+### Fixed
+
+- `roles/nomad/templates/nomad.d/server.hcl.j2`: the `nomad-driver-container` plugin's `container_path` was hardcoded to `/opt/homebrew/bin/container` instead of using the existing `homebrew_dir` variable (the `nomad-driver-podman` block right next to it already did this correctly). Harmless so far since no host has relocated its Homebrew prefix, but inconsistent and now fixed.
+- `roles/podman/templates/LaunchAgents/com.podman.machine.default.plist.j2`: `ProgramArguments`'s last argument was the literal string `podman-machine-default` instead of referencing the existing `podman_machine_name` variable, so a host overriding `podman_machine_name` would have gotten a LaunchAgent pointed at the wrong machine name.
+- `roles/consul/templates/LaunchAgents/homebrew.mxcl.consul.plist.j2`: `-config-file` was hardcoded to `/etc/consul.d/server.hcl` instead of using the existing `consul_config_dir` variable, so a host overriding `config_dir` would have gotten a LaunchAgent pointed at the wrong config path.
+
+All plist templates were re-rendered with representative values and parsed back through Python's `plistlib` to confirm byte-for-byte equivalent structure to the pre-refactor output (apart from the three fixes above, which only change behavior for a host that overrides the relevant variable from its default).
+
 ## [1.6.2] - 2026-10-01
 
 ### Fixed

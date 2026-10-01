@@ -1,4 +1,10 @@
 ---
+sysctl_tuning_script_name: "sysctl-tuning.sh"
+
+sysctl_launchdaemon_label: "cloud.cosmonautical.sysctl-tuning"
+
+sysctl_launchdaemon_log_file: "sysctl-tuning.log"
+
 # kern.ipc.somaxconn: macOS defaults to 128, which is the max number of
 # pending (not-yet-accepted) connections a listening socket can queue. Under
 # a real burst (e.g. multiple devices syncing Nextcloud at once) this fills

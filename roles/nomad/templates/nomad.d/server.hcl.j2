@@ -70,7 +70,7 @@ plugin "raw_exec" {
 {% if container.enabled | default(false) %}
 plugin "nomad-driver-container" {
   config {
-    container_path = "/opt/homebrew/bin/container"
+    container_path = "{{ homebrew_dir }}/bin/container"
 
     gc {
       container = true

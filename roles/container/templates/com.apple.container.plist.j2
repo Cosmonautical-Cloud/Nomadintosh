@@ -4,14 +4,13 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.apple.container</string>
+    <string>{{ container_launchagent_label }}</string>
 
     <key>ProgramArguments</key>
     <array>
-        <string>{{ homebrew_dir }}/bin/container</string>
-        <string>system</string>
-        <string>start</string>
-        <string>--enable-kernel-install</string>
+{% for arg in container_launchagent_program_args %}
+        <string>{{ arg }}</string>
+{% endfor %}
     </array>
 
     <key>RunAtLoad</key>
@@ -21,9 +20,9 @@
     <true/>
 
     <key>StandardOutPath</key>
-    <string>{{ log_dir }}/container.log</string>
+    <string>{{ log_dir }}/{{ container_launchagent_log_file }}</string>
 
     <key>StandardErrorPath</key>
-    <string>{{ log_dir }}/container.log</string>
+    <string>{{ log_dir }}/{{ container_launchagent_log_file }}</string>
 </dict>
 </plist>

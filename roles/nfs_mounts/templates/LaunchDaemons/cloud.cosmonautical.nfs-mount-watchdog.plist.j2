@@ -3,19 +3,19 @@
 <plist version="1.0">
     <dict>
         <key>Label</key>
-        <string>cloud.cosmonautical.nfs-mount-watchdog</string>
+        <string>{{ nfs_mounts_watchdog_label }}</string>
         <key>ProgramArguments</key>
         <array>
             <string>/bin/sh</string>
-            <string>{{ config_dir }}/nfs-mount-watchdog.sh</string>
+            <string>{{ config_dir }}/{{ nfs_mounts_watchdog_script_name }}</string>
         </array>
         <key>RunAtLoad</key>
         <true/>
         <key>StartInterval</key>
         <integer>{{ nfs_mounts_watchdog_interval }}</integer>
         <key>StandardErrorPath</key>
-        <string>{{ log_dir }}/nfs-mount-watchdog.log</string>
+        <string>{{ log_dir }}/{{ nfs_mounts_watchdog_log_file }}</string>
         <key>StandardOutPath</key>
-        <string>{{ log_dir }}/nfs-mount-watchdog.log</string>
+        <string>{{ log_dir }}/{{ nfs_mounts_watchdog_log_file }}</string>
     </dict>
 </plist>

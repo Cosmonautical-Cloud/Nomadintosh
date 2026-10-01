@@ -3,17 +3,17 @@
 <plist version="1.0">
     <dict>
         <key>Label</key>
-        <string>cloud.cosmonautical.sysctl-tuning</string>
+        <string>{{ sysctl_launchdaemon_label }}</string>
         <key>ProgramArguments</key>
         <array>
             <string>/bin/sh</string>
-            <string>{{ config_dir }}/sysctl-tuning.sh</string>
+            <string>{{ config_dir }}/{{ sysctl_tuning_script_name }}</string>
         </array>
         <key>RunAtLoad</key>
         <true/>
         <key>StandardErrorPath</key>
-        <string>{{ log_dir }}/sysctl-tuning.log</string>
+        <string>{{ log_dir }}/{{ sysctl_launchdaemon_log_file }}</string>
         <key>StandardOutPath</key>
-        <string>{{ log_dir }}/sysctl-tuning.log</string>
+        <string>{{ log_dir }}/{{ sysctl_launchdaemon_log_file }}</string>
     </dict>
 </plist>

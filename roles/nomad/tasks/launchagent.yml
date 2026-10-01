@@ -2,7 +2,7 @@
 - name: Create Launch Agent for Nomad
   ansible.builtin.template:
     src: LaunchAgents/homebrew.mxcl.nomad.plist.j2
-    dest: "/Users/{{ ansible_user }}/Library/LaunchAgents/homebrew.mxcl.nomad.plist"
+    dest: "{{ launch_agents_dir }}/{{ nomad_launchagent_label }}.plist"
     mode: '0644'
     owner: "{{ ansible_user }}"
     group: staff
@@ -14,7 +14,7 @@
         argv:
           - launchctl
           - list
-          - homebrew.mxcl.nomad
+          - "{{ nomad_launchagent_label }}"
       register: nomad_launchctl
       failed_when: false
       changed_when: false
@@ -27,7 +27,7 @@
           - launchctl
           - bootstrap
           - gui/{{ ansible_user_uid }}
-          - /Users/{{ ansible_user }}/Library/LaunchAgents/homebrew.mxcl.nomad.plist
+          - "{{ launch_agents_dir }}/{{ nomad_launchagent_label }}.plist"
       changed_when: true
 
     # Nomad is already running - loading the LaunchAgent above only ever
@@ -44,5 +44,5 @@
           - launchctl
           - kickstart
           - -k
-          - gui/{{ ansible_user_uid }}/homebrew.mxcl.nomad
+          - "gui/{{ ansible_user_uid }}/{{ nomad_launchagent_label }}"
       changed_when: true

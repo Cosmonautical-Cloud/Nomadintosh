@@ -5,7 +5,7 @@ Applies a list of kernel `sysctl` tunables on boot via a LaunchDaemon, since mac
 ## What it does
 
 1. Renders a small shell script (`sysctl-tuning.sh`) that runs `sysctl -w` for every entry in `sysctl_settings`.
-2. Installs a `LaunchDaemon` (`cloud.cosmonautical.sysctl-tuning`) with `RunAtLoad` that executes that script — so the settings are re-applied on every boot, not just the current session.
+2. Installs a `LaunchDaemon` (label `sysctl_launchdaemon_label`, defaults to `cloud.cosmonautical.sysctl-tuning`) into `launch_daemons_dir` (defaults to `/Library/LaunchDaemons`, defined in [`playbooks/group_vars/all.yml`](../../playbooks/group_vars/all.yml)) with `RunAtLoad` that executes that script — so the settings are re-applied on every boot, not just the current session.
 3. If the rendered script or plist changed, reloads the LaunchDaemon immediately so the new values take effect on this run too (no reboot required) — though note that already-running processes keep whatever backlog/limits their listening sockets were opened with; they need to restart themselves to pick up a new value.
 
 ## Configuration

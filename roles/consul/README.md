@@ -7,7 +7,7 @@ Installs and configures a [Consul](https://developer.hashicorp.com/consul/docs) 
 1. Creates the config directory (`/etc/consul.d`) and working/data directory (`/opt/consul`).
 2. Installs or upgrades Consul via the `hashicorp/tap` Homebrew tap. If the *upgrade* fails but Consul is already installed and runnable, the failure is treated as a warning rather than fatal — the box keeps running its current version until Homebrew has a bottle for it (the common case right after a new macOS release, when the installed Command Line Tools can't build the formula from source either). A host with no working Consul at all still fails hard.
 3. Templates `server.hcl` into `/etc/consul.d/` — datacenter, node name, server/client mode, `bootstrap_expect`, and `retry_join` are all derived automatically from the inventory.
-4. Writes a LaunchAgent plist to `~/Library/LaunchAgents/homebrew.mxcl.consul.plist` and bootstraps it into launchd if it isn't already running.
+4. Writes a LaunchAgent plist to `{{ launch_agents_dir }}/{{ consul_launchagent_label }}.plist` (defaults to `~/Library/LaunchAgents/homebrew.mxcl.consul.plist`) and bootstraps it into launchd if it isn't already running.
 5. If Consul was freshly installed or upgraded, the agent is restarted to pick up any configuration changes.
 
 ## Host variables
@@ -24,8 +24,11 @@ All paths are driven by variables defined in [`playbooks/group_vars/all.yml`](..
 |---|---|---|
 | `config_dir` | `/etc` | Root for `/etc/consul.d` |
 | `working_dir` | `/opt` | Root for `/opt/consul` (data dir) |
+| `homebrew_dir` | `/opt/homebrew` | Used to locate the `consul` binary |
+| `log_dir` | `{{ homebrew_dir }}/var/log` | Directory the LaunchAgent writes `consul_launchagent_log_file` into |
+| `launch_agents_dir` | `~/Library/LaunchAgents` | Where the LaunchAgent plist is written |
 
-Role-level defaults in `defaults/main.yml` expand these into `consul_config_dir` and `consul_working_dir`.
+Role-level defaults in `defaults/main.yml` expand these into `consul_config_dir` and `consul_working_dir`, and set the LaunchAgent's own `consul_launchagent_label`, `consul_launchagent_program_args`, `consul_launchagent_log_file`, and `consul_launchagent_working_dir` — each defaulted to the value the plist previously hardcoded.
 
 ## No manual setup required (usually)
 

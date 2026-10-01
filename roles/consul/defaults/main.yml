@@ -2,3 +2,14 @@
 consul_config_dir: "{{ config_dir }}/consul.d"
 
 consul_working_dir: "{{ working_dir }}/consul"
+
+consul_launchagent_label: "homebrew.mxcl.consul"
+
+consul_launchagent_program_args:
+  - "{{ homebrew_dir }}/bin/consul"
+  - agent
+  - "-config-file={{ consul_config_dir }}/server.hcl"
+
+consul_launchagent_working_dir: "{{ homebrew_dir }}/var"
+
+consul_launchagent_log_file: "consul.log"

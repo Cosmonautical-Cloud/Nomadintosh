@@ -1,6 +1,17 @@
 ---
 notify_enabled: false
 
+nomad_launchagent_label: "homebrew.mxcl.nomad"
+
+nomad_launchagent_program_args:
+  - "{{ homebrew_dir }}/bin/nomad"
+  - agent
+  - "-config={{ nomad_config_dir }}/server.hcl"
+
+nomad_launchagent_working_dir: "{{ homebrew_dir }}/var"
+
+nomad_launchagent_log_file: "nomad.log"
+
 nomad_plugin_dir: "{{ nomad_working_dir }}/plugins"
 
 nomad_podman_driver_version: "0.6.4"

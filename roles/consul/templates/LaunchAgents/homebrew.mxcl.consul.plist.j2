@@ -3,12 +3,12 @@
 <plist version="1.0">
     <dict>
         <key>Label</key>
-        <string>homebrew.mxcl.consul</string>
+        <string>{{ consul_launchagent_label }}</string>
         <key>ProgramArguments</key>
         <array>
-                <string>{{ homebrew_dir }}/bin/consul</string>
-                <string>agent</string>
-                <string>-config-file=/etc/consul.d/server.hcl</string>
+{% for arg in consul_launchagent_program_args %}
+                <string>{{ arg }}</string>
+{% endfor %}
         </array>
         <key>KeepAlive</key>
         <dict>
@@ -20,10 +20,10 @@
         <key>RunAtLoad</key>
         <true/>
         <key>StandardErrorPath</key>
-        <string>{{ log_dir }}/consul.log</string>
+        <string>{{ log_dir }}/{{ consul_launchagent_log_file }}</string>
         <key>StandardOutPath</key>
-        <string>{{ log_dir }}/consul.log</string>
+        <string>{{ log_dir }}/{{ consul_launchagent_log_file }}</string>
         <key>WorkingDirectory</key>
-        <string>{{ homebrew_dir }}/var</string>
+        <string>{{ consul_launchagent_working_dir }}</string>
     </dict>
 </plist>

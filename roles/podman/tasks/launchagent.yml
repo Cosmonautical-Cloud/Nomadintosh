@@ -2,7 +2,7 @@
 - name: Apply Launch Agent for Podman
   ansible.builtin.template:
     src: LaunchAgents/com.podman.machine.default.plist.j2
-    dest: "/Users/{{ ansible_user }}/Library/LaunchAgents/com.podman.machine.default.plist"
+    dest: "{{ launch_agents_dir }}/{{ podman_launchagent_label }}.plist"
     mode: '0644'
     owner: "{{ ansible_user }}"
     group: staff
@@ -12,7 +12,7 @@
     argv:
       - launchctl
       - list
-      - com.podman.machine.default
+      - "{{ podman_launchagent_label }}"
   register: podman_launchctl
   failed_when: false
   changed_when: false
@@ -24,5 +24,5 @@
       - launchctl
       - bootstrap
       - gui/{{ ansible_user_uid }}
-      - /Users/{{ ansible_user }}/Library/LaunchAgents/com.podman.machine.default.plist
+      - "{{ launch_agents_dir }}/{{ podman_launchagent_label }}.plist"
   changed_when: true

@@ -1,4 +1,10 @@
 ---
+nfs_mounts_watchdog_script_name: "nfs-mount-watchdog.sh"
+
+nfs_mounts_watchdog_label: "cloud.cosmonautical.nfs-mount-watchdog"
+
+nfs_mounts_watchdog_log_file: "nfs-mount-watchdog.log"
+
 # See README.md for the rationale behind each of these.
 nfs_mounts_shares: []
 volume_mount_path: /Volumes

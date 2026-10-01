@@ -2,7 +2,7 @@
 - name: Create Launch Agent for Consul
   ansible.builtin.template:
     src: LaunchAgents/homebrew.mxcl.consul.plist.j2
-    dest: "/Users/{{ ansible_user }}/Library/LaunchAgents/homebrew.mxcl.consul.plist"
+    dest: "{{ launch_agents_dir }}/{{ consul_launchagent_label }}.plist"
     mode: '0644'
     owner: "{{ ansible_user }}"
     group: staff
@@ -14,7 +14,7 @@
         argv:
           - launchctl
           - list
-          - homebrew.mxcl.consul
+          - "{{ consul_launchagent_label }}"
       register: consul_launchctl
       failed_when: false
       changed_when: false
@@ -26,5 +26,5 @@
           - launchctl
           - bootstrap
           - gui/{{ ansible_user_uid }}
-          - /Users/{{ ansible_user }}/Library/LaunchAgents/homebrew.mxcl.consul.plist
+          - "{{ launch_agents_dir }}/{{ consul_launchagent_label }}.plist"
       changed_when: true

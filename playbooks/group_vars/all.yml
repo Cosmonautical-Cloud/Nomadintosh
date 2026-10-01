@@ -12,6 +12,10 @@ config_dir: /etc
 
 working_dir: /opt
 
+launch_agents_dir: "/Users/{{ ansible_user }}/Library/LaunchAgents"
+
+launch_daemons_dir: /Library/LaunchDaemons
+
 # Same NAS also has a Nomad variable (cosmonautical/nas) holding this same
 # host/user, used by job templates via {{ with nomadVar "cosmonautical/nas" }}
 # - Ansible has no bridge into Nomad's variable store, so it's duplicated

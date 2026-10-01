@@ -3,7 +3,7 @@
   become: true
   ansible.builtin.template:
     src: sysctl-tuning.sh.j2
-    dest: "{{ config_dir }}/sysctl-tuning.sh"
+    dest: "{{ config_dir }}/{{ sysctl_tuning_script_name }}"
     mode: '0755'
     owner: root
     group: wheel
@@ -12,7 +12,7 @@
   become: true
   ansible.builtin.template:
     src: LaunchDaemons/cloud.cosmonautical.sysctl-tuning.plist.j2
-    dest: /Library/LaunchDaemons/cloud.cosmonautical.sysctl-tuning.plist
+    dest: "{{ launch_daemons_dir }}/{{ sysctl_launchdaemon_label }}.plist"
     mode: '0644'
     owner: root
     group: wheel
@@ -27,7 +27,7 @@
         argv:
           - launchctl
           - bootout
-          - system/cloud.cosmonautical.sysctl-tuning
+          - "system/{{ sysctl_launchdaemon_label }}"
       failed_when: false
       changed_when: false
 
@@ -37,5 +37,5 @@
           - launchctl
           - bootstrap
           - system
-          - /Library/LaunchDaemons/cloud.cosmonautical.sysctl-tuning.plist
+          - "{{ launch_daemons_dir }}/{{ sysctl_launchdaemon_label }}.plist"
       changed_when: true

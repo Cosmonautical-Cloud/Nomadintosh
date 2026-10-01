@@ -5,7 +5,7 @@ Mounts the NAS's NFS exports persistently via a LaunchDaemon, alongside (not rep
 ## What it does
 
 1. Renders a small shell script (`nfs-mount-watchdog.sh`) that checks each share in `nfs_mounts_shares` and mounts it if it isn't already.
-2. Installs a `LaunchDaemon` (`cloud.cosmonautical.nfs-mount-watchdog`) that runs that script on boot (`RunAtLoad`) and every `nfs_mounts_watchdog_interval` seconds thereafter (`StartInterval`) — it's re-spawned fresh each interval, not a single long-running process.
+2. Installs a `LaunchDaemon` (label `nfs_mounts_watchdog_label`, defaults to `cloud.cosmonautical.nfs-mount-watchdog`) into `launch_daemons_dir` (defaults to `/Library/LaunchDaemons`, defined in [`playbooks/group_vars/all.yml`](../../playbooks/group_vars/all.yml)) that runs that script on boot (`RunAtLoad`) and every `nfs_mounts_watchdog_interval` seconds thereafter (`StartInterval`) — it's re-spawned fresh each interval, not a single long-running process.
 3. Each mount uses `deadtimeout={{ nfs_mounts_deadtimeout }}`: if the NAS becomes unresponsive for that long, the kernel force-unmounts it. The next watchdog run notices it's missing and remounts it — unattended recovery in roughly `deadtimeout + one interval`, no manual intervention. (Mounting NFS requires root on macOS — there's no user-mount sysctl equivalent on this OS version — which is why this is a system LaunchDaemon rather than something a Nomad task can do itself.)
 
 ## Why the mount point matches the old SMB path
@@ -37,3 +37,6 @@ nfs_mounts_shares:
 | `nfs_mounts_version` | `3` | Pinned rather than negotiated — the UNAS Pro only speaks NFSv3 (confirmed 2026-09-21) |
 | `nfs_mounts_rsize` / `nfs_mounts_wsize` | `65536` | Practical max macOS's `mount_nfs` will do for NFSv3 (default negotiates down to 32768) — doesn't help once the NAS's own disk I/O is the bottleneck under concurrent load (confirmed 2026-09-24), but a safe, cheap thing to raise |
 | `nfs_mounts_timeo` | `100` | RPC retransmit timeout in tenths of a second, up from macOS's default of 10 (1.0s) — too aggressive under concurrent-load contention (confirmed 2026-09-24/25), triggering redundant retransmits onto an already-struggling NAS; stays well under `nfs_mounts_deadtimeout` so a genuinely dead NAS is still detected promptly |
+| `nfs_mounts_watchdog_label` | `cloud.cosmonautical.nfs-mount-watchdog` | LaunchDaemon label |
+| `nfs_mounts_watchdog_script_name` | `nfs-mount-watchdog.sh` | Script filename under `config_dir` |
+| `nfs_mounts_watchdog_log_file` | `nfs-mount-watchdog.log` | Log filename under `log_dir` |

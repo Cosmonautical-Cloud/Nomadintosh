@@ -1,2 +1,10 @@
 ---
 podman_machine_name: "podman-machine-default"
+
+podman_launchagent_label: "com.podman.machine.default"
+
+podman_launchagent_program_args:
+  - "{{ homebrew_dir }}/bin/podman"
+  - machine
+  - start
+  - "{{ podman_machine_name }}"

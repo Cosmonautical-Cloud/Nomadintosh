@@ -1,13 +1,13 @@
 ---
 - name: Check if Launch Agent already exists for Apple Container
   ansible.builtin.stat:
-    path: "/Users/{{ ansible_user }}/Library/LaunchAgents/com.apple.container.plist"
+    path: "{{ launch_agents_dir }}/{{ container_launchagent_label }}.plist"
   register: container_launch_agent_stat
 
 - name: Apply Launch Agent for Apple Container
   ansible.builtin.template:
     src: com.apple.container.plist.j2
-    dest: "/Users/{{ ansible_user }}/Library/LaunchAgents/com.apple.container.plist"
+    dest: "{{ launch_agents_dir }}/{{ container_launchagent_label }}.plist"
     mode: '0644'
     owner: "{{ ansible_user }}"
     group: staff
@@ -18,7 +18,7 @@
       - launchctl
       - kickstart
       - -k
-      - gui/{{ ansible_user_uid }}/com.apple.container
+      - "gui/{{ ansible_user_uid }}/{{ container_launchagent_label }}"
   when: container_launch_agent_stat.stat.exists
 
 - name: Load Apple Container Launch Agent (first install)
@@ -27,5 +27,5 @@
       - launchctl
       - bootstrap
       - gui/{{ ansible_user_uid }}
-      - /Users/{{ ansible_user }}/Library/LaunchAgents/com.apple.container.plist
+      - "{{ launch_agents_dir }}/{{ container_launchagent_label }}.plist"
   when: not container_launch_agent_stat.stat.exists

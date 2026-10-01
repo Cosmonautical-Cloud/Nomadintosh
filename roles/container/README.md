@@ -7,7 +7,7 @@ Installs or removes [Apple's Container CLI](https://github.com/apple/container) 
 `container.enabled: true` (`tasks/setup.yml`):
 
 1. Installs or upgrades the `container` package via Homebrew.
-2. Templates a LaunchAgent plist (`com.apple.container.plist`) into `~/Library/LaunchAgents/`.
+2. Templates a LaunchAgent plist (`{{ container_launchagent_label }}.plist`, defaults to `com.apple.container.plist`) into `{{ launch_agents_dir }}` (defaults to `~/Library/LaunchAgents/`).
    - On first install: bootstraps the agent into launchd with `launchctl bootstrap`.
    - On upgrade: restarts the existing agent with `launchctl kickstart -k`.
 3. Asserts that the container system is running by calling `container system status`.
@@ -29,9 +29,10 @@ The LaunchAgent invokes `container system start --enable-kernel-install` at logi
 | Variable | Purpose |
 |---|---|
 | `homebrew_dir` | Path to the Homebrew prefix (e.g. `/opt/homebrew`). Used to resolve the `container` binary. |
-| `log_dir` | Directory where `container.log` is written. |
+| `log_dir` | Directory where `container_launchagent_log_file` (defaults to `container.log`) is written. |
+| `launch_agents_dir` | Where the LaunchAgent plist is written (defaults to `~/Library/LaunchAgents`). |
 
-These are expected to be set in [`playbooks/group_vars/all.yml`](../../playbooks/group_vars/all.yml).
+These are expected to be set in [`playbooks/group_vars/all.yml`](../../playbooks/group_vars/all.yml). Role-level defaults in `defaults/main.yml` set `container_launchagent_label`, `container_launchagent_program_args`, and `container_launchagent_log_file` — each defaulted to the value the plist previously hardcoded.
 
 ## Notes
 
