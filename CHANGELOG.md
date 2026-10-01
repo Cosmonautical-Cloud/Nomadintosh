@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [2.0.1] - 2026-10-01
+
+### Fixed
+
+- The `nomad`, `consul`, and `podman` LaunchAgent plist templates gained a trailing newline when their `Label`/`ProgramArguments`/path values were extracted into variables in 1.6.3 - the previously-deployed plists on every host end `</plist>` with no trailing newline, so this showed up as a spurious one-time `changed` on the LaunchAgent template task industry-wide (confirmed live via a Semaphore check-mode run against `galileo`/`hopper`). Templates now end byte-for-byte the same as before that refactor; re-rendered and confirmed identical to the already-deployed files.
+
 ## [2.0.0] - 2026-10-01
 
 ### Changed
