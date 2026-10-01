@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [1.5.0] - 2026-10-01
+
+### Added
+
+- Restored the `cosmonautical.notify` dependency in `galaxy.yml` and `collections/requirements.yml` now that the `cosmonautical` namespace is approved and `cosmonautical.notify` 0.0.1 is published. Set `notify_enabled: true` in inventory to re-enable notifications - no code changes needed, per the note left in [1.4.2](#142---2026-09-30).
+
+### Fixed
+
+- `roles/nomad/tasks/container_driver.yml` failed under `--check --diff` with `Source ... not found`: the download/extract steps were silently simulated under check mode (nothing ever landed in `/tmp`), so the final `copy` task had no source to stat. Download, extract, and move now run for real under check mode (`check_mode: false`), same as the existing tmp-directory-creation task, while restart/config-diff stay simulated as before.
+- The same tasks weren't idempotent across a `nomad_container_driver_version` bump: the extraction step's `creates:` guard pointed at a fixed, unversioned path, so once a version had been extracted once, a later version bump would re-download the new tarball but skip re-extracting it, leaving the old binary in place. The tmp directory is now version-scoped (`nomad_container_driver_tmp_dir`), so a version bump always re-extracts and redeploys.
+
 ## [1.4.2] - 2026-09-30
 
 ### Changed

@@ -13,6 +13,10 @@ nomad_container_driver_archive: "nomad-driver-container-darwin-arm64.tar.gz"
 
 nomad_container_driver_url: "{{ nomad_container_driver_repo }}/releases/download/v{{ nomad_container_driver_version }}/{{ nomad_container_driver_archive }}"
 
+# Version-scoped so a version bump always re-downloads and re-extracts
+# instead of silently skipping on the previous version's `creates:` marker.
+nomad_container_driver_tmp_dir: "/tmp/{{ nomad_container_driver_name }}-{{ nomad_container_driver_version }}"
+
 nomad_config_dir: "{{ config_dir }}/nomad.d"
 
 nomad_working_dir: "{{ working_dir }}/nomad"

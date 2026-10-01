@@ -2,3 +2,5 @@
 collections:
   - name: geerlingguy.mac
   - name: community.general
+  - name: cosmonautical.notify
+    version: "0.0.1"

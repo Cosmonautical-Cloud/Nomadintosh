@@ -1,7 +1,7 @@
 ---
 - name: Create tmp directory for Container driver plugin
   ansible.builtin.file:
-    path: "/tmp/{{ nomad_container_driver_name }}"
+    path: "{{ nomad_container_driver_tmp_dir }}"
     state: directory
   check_mode: false
 
@@ -16,25 +16,27 @@
 - name: Download Container driver plugin
   ansible.builtin.get_url:
     url: "{{ nomad_container_driver_url }}"
-    dest: "/tmp/{{ nomad_container_driver_name }}/nomad-driver-container-darwin-arm64.tar.gz"
+    dest: "{{ nomad_container_driver_tmp_dir }}/nomad-driver-container-darwin-arm64.tar.gz"
     mode: '0644'
+  check_mode: false
 
 - name: Extract Container driver plugin
   ansible.builtin.command:
     argv:
       - /usr/bin/tar
       - xzf
-      - "/tmp/{{ nomad_container_driver_name }}/nomad-driver-container-darwin-arm64.tar.gz"
+      - "{{ nomad_container_driver_tmp_dir }}/nomad-driver-container-darwin-arm64.tar.gz"
       - -C
-      - "/tmp/{{ nomad_container_driver_name }}"
-    creates: "/tmp/{{ nomad_container_driver_name }}/nomad-driver-container"
-
+      - "{{ nomad_container_driver_tmp_dir }}"
+    creates: "{{ nomad_container_driver_tmp_dir }}/nomad-driver-container"
+  check_mode: false
 
 - name: Move Container driver plugin to Nomad plugins directory
   ansible.builtin.copy:
-    src: "/tmp/{{ nomad_container_driver_name }}/nomad-driver-container"
+    src: "{{ nomad_container_driver_tmp_dir }}/nomad-driver-container"
     dest: "/opt/nomad/plugins/{{ nomad_container_driver_name }}"
     remote_src: true
     mode: '0755'
     owner: "{{ ansible_user }}"
     group: "staff"
+  check_mode: false
