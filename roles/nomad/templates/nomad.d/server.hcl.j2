@@ -18,7 +18,7 @@ name = "{{ inventory_hostname }}"
 
 data_dir   = "{{ nomad_working_dir }}"
 
-bind_addr  = "0.0.0.0"
+bind_addr  = "{{ ansible_facts['default_ipv4']['address'] }}"
 retry_join = ["{{ retry_join_hosts | join('", "') }}"]
 
 # Control plane on this box

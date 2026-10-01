@@ -34,7 +34,7 @@ bootstrap_expect = {{ ns.servers | length }}
 {% endif %}
 ui = {{ server.enabled | default(false) | lower }}
 
-bind_addr      = "0.0.0.0"
+bind_addr      = "{{ ansible_facts['default_ipv4']['address'] }}"
 client_addr    = "0.0.0.0"
 advertise_addr = "{{ ansible_facts['default_ipv4']['address'] }}"
 

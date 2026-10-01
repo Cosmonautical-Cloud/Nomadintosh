@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [1.5.1] - 2026-10-01
+
+### Fixed
+
+- `roles/consul/templates/consul.d/server.hcl.j2` and `roles/nomad/templates/nomad.d/server.hcl.j2` both set `bind_addr = "0.0.0.0"`, which on macOS produced a dual-stack (IPv6-capable) listener for Consul's serf/raft ports (8300-8302) and Nomad's own bind port, even though `advertise_addr` was already a literal IPv4 address. When a host accumulates stale default IPv6 routes through dead `utunN` interfaces (observed: macOS keeps regenerating these even after manual `route delete`, so they're not a one-time cleanup), Consul's gossip/raft RPC traffic intermittently resolves through one of those dead routes and fails with `no route to host` - which cascaded into raft quorum loss and a Patroni-managed Postgres instance stuck unable to reach its Consul DCS. `bind_addr` is now pinned to the same literal private IPv4 address `advertise_addr` already uses (`ansible_facts['default_ipv4']['address']`), forcing a true IPv4-only socket so cluster gossip/raft no longer depends on IPv6 routing at all. Consul's `client_addr` (HTTP/DNS API, loopback-only traffic from Nomad/Patroni) is left at `0.0.0.0` - it wasn't implicated in the failure chain.
+
 ## [1.5.0] - 2026-10-01
 
 ### Added
