@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [1.4.1] - 2026-09-30
+
+### Docs
+
+- Repo moved from `anultravioletaurora/Nomadintosh` to the `Cosmonautical-Cloud` GitHub org. Updated `repository`/`homepage`/`issues` in `galaxy.yml` to match. Galaxy namespace (`anultravioletaurora`) is unaffected — it's tied to the Galaxy account, not the repo's GitHub location.
+
 ## [1.4.0] - 2026-09-30
 
 ### Changed

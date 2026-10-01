@@ -3,7 +3,7 @@ namespace: anultravioletaurora
 name: nomadintosh
 authors:
   - Violet Caulfield
-version: 1.4.0
+version: 1.4.1
 readme: README.md
 description: An Ansible collection for deploying Nomad + Consul on a macOS cluster.
 license:
@@ -14,9 +14,9 @@ tags:
   - macos
   - homelab
   - hashicorp
-repository: https://github.com/anultravioletaurora/Nomadintosh
-homepage: https://github.com/anultravioletaurora/Nomadintosh
-issues: https://github.com/anultravioletaurora/Nomadintosh/issues
+repository: https://github.com/Cosmonautical-Cloud/Nomadintosh
+homepage: https://github.com/Cosmonautical-Cloud/Nomadintosh
+issues: https://github.com/Cosmonautical-Cloud/Nomadintosh/issues
 dependencies:
   geerlingguy.mac: "*"
   community.general: "*"
