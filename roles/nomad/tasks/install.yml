@@ -1,20 +1,58 @@
 ---
-- name: Ensure Nomad is installed from HashiCorp tap
-  community.general.homebrew:
-    name:
-      - hashicorp/tap/nomad
-    state: latest
-    update_homebrew: true
-  register: nomad_package_install
+- name: Install / upgrade Nomad via Homebrew
+  block:
+    - name: Ensure Nomad is installed from HashiCorp tap
+      community.general.homebrew:
+        name:
+          - hashicorp/tap/nomad
+        state: latest
+        update_homebrew: true
+      register: nomad_package_install
 
-- name: Register if Nomad was installed or updated
-  ansible.builtin.set_fact:
-    nomad_package_updated: "{{ nomad_package_install.changed }}"
+    - name: Register if Nomad was installed or updated
+      ansible.builtin.set_fact:
+        nomad_package_updated: "{{ nomad_package_install.changed }}"
 
-- name: Notify if Nomad was installed or updated
-  ansible.builtin.debug:
-    msg: "Nomad was {{ 'installed' if nomad_package_install.changed else 'already up to date' }}."
+    - name: Notify if Nomad was installed or updated
+      ansible.builtin.debug:
+        msg: "Nomad was {{ 'installed' if nomad_package_install.changed else 'already up to date' }}."
 
-- name: Send Webhook notification if Nomad was installed or updated
-  ansible.builtin.include_tasks: notify.yml
-  when: notify_enabled | default(false)
+    - name: Send Webhook notification if Nomad was installed or updated
+      ansible.builtin.include_tasks: notify.yml
+      when: notify_enabled | default(false)
+
+  rescue:
+    # Homebrew's own tap is kept as the only install path (no vendored binary
+    # fallback) - but a failed *upgrade* shouldn't be fatal if a working
+    # Nomad is already on this box. The usual cause is a brand-new macOS
+    # release: no bottle for it yet, and the installed Command Line Tools
+    # can't build from source for it either ("Your Command Line Tools (CLT)
+    # does not support macOS X"). That resolves itself once Homebrew/HashiCorp
+    # ship a bottle for the new OS - re-running this playbook is enough, no
+    # code change needed.
+    - name: Check whether Nomad is already installed despite the failed upgrade
+      ansible.builtin.command:
+        argv:
+          - "{{ homebrew_dir }}/bin/nomad"
+          - version
+      register: nomad_fallback_check
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Re-raise if there's no already-installed Nomad to fall back to
+      ansible.builtin.fail:
+        msg: "{{ ansible_failed_result.msg | default('Nomad install via Homebrew failed') }}"
+      when: nomad_fallback_check.rc != 0
+
+    - name: Warn and keep running the already-installed version
+      ansible.builtin.debug:
+        msg: >-
+          hashicorp/tap/nomad couldn't be upgraded via Homebrew on this host
+          ({{ nomad_fallback_check.stdout }} stays in place). Re-run this
+          playbook once Homebrew has a bottle for this macOS version instead
+          of treating this as fatal.
+
+    - name: Treat the failed upgrade as no change
+      ansible.builtin.set_fact:
+        nomad_package_updated: false

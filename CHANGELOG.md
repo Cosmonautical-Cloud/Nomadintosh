@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [1.6.1] - 2026-10-01
+
+### Changed
+
+- `roles/consul/tasks/install.yml`, `roles/nomad/tasks/install.yml`: a failed Homebrew *upgrade* of Consul/Nomad is no longer fatal when a working install already exists on the host - it's logged as a warning and the current version keeps running. This is specifically for the window right after a new macOS release where Homebrew has no bottle yet and the installed Command Line Tools can't build the formula from source either (`Your Command Line Tools (CLT) does not support macOS X`); it resolves itself on a later run once a bottle ships, no code change needed. A host with no working install at all still fails hard - this only softens upgrade failures, not first installs. The Homebrew tap remains the only install path; no vendored/direct-download fallback was added.
+- `roles/consul/templates/LaunchAgents/homebrew.mxcl.consul.plist.j2`: pointed `ProgramArguments` at `{{ homebrew_dir }}/bin/consul` instead of the Cellar `opt/consul` symlink, matching how the Nomad LaunchAgent already references its binary.
+
 ## [1.6.0] - 2026-10-01
 
 ### Removed

@@ -5,7 +5,7 @@ Installs and configures a [Consul](https://developer.hashicorp.com/consul/docs) 
 ## What it does
 
 1. Creates the config directory (`/etc/consul.d`) and working/data directory (`/opt/consul`).
-2. Installs or upgrades Consul via the `hashicorp/tap` Homebrew tap.
+2. Installs or upgrades Consul via the `hashicorp/tap` Homebrew tap. If the *upgrade* fails but Consul is already installed and runnable, the failure is treated as a warning rather than fatal — the box keeps running its current version until Homebrew has a bottle for it (the common case right after a new macOS release, when the installed Command Line Tools can't build the formula from source either). A host with no working Consul at all still fails hard.
 3. Templates `server.hcl` into `/etc/consul.d/` — datacenter, node name, server/client mode, `bootstrap_expect`, and `retry_join` are all derived automatically from the inventory.
 4. Writes a LaunchAgent plist to `~/Library/LaunchAgents/homebrew.mxcl.consul.plist` and bootstraps it into launchd if it isn't already running.
 5. If Consul was freshly installed or upgraded, the agent is restarted to pick up any configuration changes.

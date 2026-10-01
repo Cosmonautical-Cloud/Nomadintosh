@@ -5,7 +5,7 @@ Installs and configures a [Nomad](https://developer.hashicorp.com/nomad/docs) ag
 ## What it does
 
 1. Creates the config directory (`/etc/nomad.d`) and working/data directory (`/opt/nomad`).
-2. Installs or upgrades Nomad via the `hashicorp/tap` Homebrew tap.
+2. Installs or upgrades Nomad via the `hashicorp/tap` Homebrew tap. If the *upgrade* fails but Nomad is already installed and runnable, the failure is treated as a warning rather than fatal — the box keeps running its current version until Homebrew has a bottle for it (the common case right after a new macOS release, when the installed Command Line Tools can't build the formula from source either). A host with no working Nomad at all still fails hard.
 3. If `container.enabled: true`, downloads and installs the [`nomad-driver-container`](https://github.com/anultravioletaurora/nomad-driver-container) plugin into `/opt/nomad/plugins`; if `container.enabled: false`, removes it. Same for `podman.enabled` and [`nomad-driver-podman`](https://developer.hashicorp.com/nomad/plugins/drivers/podman) (downloaded and compiled from source rather than pre-built). Neither happens if the variable is absent entirely.
 4. Templates `server.hcl` into `/etc/nomad.d/` — datacenter, server mode, `bootstrap_expect`, `retry_join`, any configured host volumes, and the `container`/`podman`/`docker` plugin blocks (each present only when that variable's `.enabled` is `true`) are derived from the inventory.
 5. Writes a LaunchAgent plist to `~/Library/LaunchAgents/homebrew.mxcl.nomad.plist` and bootstraps it into launchd if it isn't already running.

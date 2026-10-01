@@ -1,12 +1,50 @@
 ---
-- name: Ensure Consul is installed from HashiCorp tap
-  community.general.homebrew:
-    name:
-      - hashicorp/tap/consul
-    state: latest
-    update_homebrew: true
-  register: consul_package_install
+- name: Install / upgrade Consul via Homebrew
+  block:
+    - name: Ensure Consul is installed from HashiCorp tap
+      community.general.homebrew:
+        name:
+          - hashicorp/tap/consul
+        state: latest
+        update_homebrew: true
+      register: consul_package_install
 
-- name: Register if Consul was installed or updated
-  ansible.builtin.set_fact:
-    consul_package_updated: "{{ consul_package_install.changed }}"
+    - name: Register if Consul was installed or updated
+      ansible.builtin.set_fact:
+        consul_package_updated: "{{ consul_package_install.changed }}"
+
+  rescue:
+    # Homebrew's own tap is kept as the only install path (no vendored binary
+    # fallback) - but a failed *upgrade* shouldn't be fatal if a working
+    # Consul is already on this box. The usual cause is a brand-new macOS
+    # release: no bottle for it yet, and the installed Command Line Tools
+    # can't build from source for it either ("Your Command Line Tools (CLT)
+    # does not support macOS X"). That resolves itself once Homebrew/HashiCorp
+    # ship a bottle for the new OS - re-running this playbook is enough, no
+    # code change needed.
+    - name: Check whether Consul is already installed despite the failed upgrade
+      ansible.builtin.command:
+        argv:
+          - "{{ homebrew_dir }}/bin/consul"
+          - version
+      register: consul_fallback_check
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Re-raise if there's no already-installed Consul to fall back to
+      ansible.builtin.fail:
+        msg: "{{ ansible_failed_result.msg | default('Consul install via Homebrew failed') }}"
+      when: consul_fallback_check.rc != 0
+
+    - name: Warn and keep running the already-installed version
+      ansible.builtin.debug:
+        msg: >-
+          hashicorp/tap/consul couldn't be upgraded via Homebrew on this host
+          ({{ consul_fallback_check.stdout }} stays in place). Re-run this
+          playbook once Homebrew has a bottle for this macOS version instead
+          of treating this as fatal.
+
+    - name: Treat the failed upgrade as no change
+      ansible.builtin.set_fact:
+        consul_package_updated: false
