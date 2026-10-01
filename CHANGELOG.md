@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [3.1.0] - 2026-10-01
+
+### Added
+
+- New `clean` role and `playbooks/clean.yml` — runs `brew cleanup` to prune old Homebrew Cellar versions and cached downloads left behind by upgrades (`community.general.homebrew: state: latest`, used throughout `nomad`/`consul`/`podman`, never removes the previous version's files on its own). Added `clean.zsh` wrapper to match the existing scripts. `Nomadable`'s own `playbooks/clean.yml` (added alongside this) composes this with Nomaduntu's equivalent.
+
+### Fixed
+
+- **`playbooks/deploy.yml`, `playbooks/reboot.yml`, `playbooks/uid_normalize.yml`, `playbooks/clean.yml`**: OS filtering moved from a per-task `when: ansible_facts['os_family'] == 'Darwin'` condition to the play level, via a `group_by` discovery play that sorts hosts into `os_Darwin`/`os_Debian` dynamic groups before the real work play runs against `hosts: os_Darwin`. This fixes a real bug in `reboot.yml` and `clean.yml`: against a mixed inventory (the normal case when invoked through `Nomadable`, which passes one shared inventory to both child playbooks), the old `hosts: all` plus unconditional task made every host - including Ubuntu ones - get hit a second time once `Nomadable`'s `playbooks/reboot.yml` also ran Nomaduntu's copy against the same hosts. `deploy.yml`'s tasks were already individually gated and didn't double-run, but the `Seaweedfs` task specifically had no OS gate at all (relied on nobody setting `seaweedfs.*.enabled` on a non-Darwin host) - that gap is closed automatically now too, since the whole second play only ever targets `os_Darwin` regardless of each task's own `when:`.
+
 ## [3.0.0] - 2026-10-01
 
 ### Changed

@@ -1,0 +1,11 @@
+---
+- name: Run brew cleanup
+  ansible.builtin.command:
+    cmd: brew cleanup
+  environment:
+    HOMEBREW_NO_AUTO_UPDATE: "1"
+  register: clean_brew_cleanup
+  # brew cleanup always exits 0 whether or not it actually removed anything -
+  # it only prints "Removing: ..." lines when there's something to prune, so
+  # that's the only reliable idempotency signal available.
+  changed_when: clean_brew_cleanup.stdout | trim | length > 0

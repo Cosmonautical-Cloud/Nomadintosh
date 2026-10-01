@@ -76,6 +76,7 @@ Ansible Galaxy has no synopsis/description field for playbooks shipped inside a 
 | `playbooks/deploy.yml` | Full deployment — installs and configures Consul, Nomad, and every optional role (`container`, `podman`, `docker_desktop`, `seaweedfs`, `sysctl`, `nfs_mounts`, `software_update`) according to each host's inventory variables. See [What it does](#what-it-does) below for the full breakdown. Idempotent — safe to rerun. |
 | `playbooks/reboot.yml` | Reboots every host in the inventory one at a time (`serial: 1`) via Ansible's `reboot` module, waiting up to 5 minutes for each to come back before moving to the next. Used to clear macOS's lingering stale IPv6 `utunN` routes and pick up Command Line Tools / OS updates — see the `reboot` role's [README](roles/reboot/README.md). Does not run the full deployment; pair it with `playbooks/deploy.yml` if a deploy is also needed. |
 | `playbooks/uid_normalize.yml` | Changes `ansible_user`'s UID to a fixed value and re-owns their known local directories to match — needed on hosts using the Jellify NFS export. **Not part of a normal deployment pass** — mutates a live user account's numeric identity; run it deliberately, one host at a time, with `--limit`. See the `uid_normalize` role's [README](roles/uid_normalize/README.md) before using it. |
+| `playbooks/clean.yml` | Runs `brew cleanup` to prune old Homebrew Cellar versions and cached downloads left behind by upgrades — see the `clean` role's [README](roles/clean/README.md). Does not run the full deployment. |
 
 ### Running them
 
@@ -95,6 +96,12 @@ Serial Reboot all hosts in the inventory:
 
 ```zsh
 ./reboot.zsh
+```
+
+Prune stale Homebrew residue on all hosts:
+
+```zsh
+./clean.zsh
 ```
 
 To limit execution to a single host or group, you can also pass `--limit` directly to the underlying playbook:

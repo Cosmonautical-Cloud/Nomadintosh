@@ -1,13 +1,20 @@
 ---
-- name: Perform Nomadintosh deployment
+- name: Discover host OS family
   hosts: all
-  # Need to fetch IPv4 addresses for Consul's configuration
   gather_facts: true
+  tasks:
+    - name: Group hosts by OS family
+      ansible.builtin.group_by:
+        key: "os_{{ ansible_facts['os_family'] }}"
+
+- name: Perform Nomadintosh deployment
+  hosts: os_Darwin
+  # Facts already gathered in the discovery play above.
+  gather_facts: false
   tasks:
     - name: Perform Software Update
       ansible.builtin.include_role:
         name: software_update
-      when: ansible_facts['os_family'] == 'Darwin'
       tags:
         - software_update
 
@@ -17,7 +24,6 @@
         apply:
           tags:
             - sysctl
-      when: ansible_facts['os_family'] == 'Darwin'
       tags:
         - sysctl
 
@@ -33,7 +39,7 @@
       # group_vars/all.yml), so it's included here too. Both groups' shares
       # are still just entries in each host's own nfs_mounts_shares list -
       # nothing about the role itself is cosmonautical-specific.
-      when: ansible_facts['os_family'] == 'Darwin' and ('cosmonautical' in group_names or 'jellify' in group_names)
+      when: "'cosmonautical' in group_names or 'jellify' in group_names"
       tags:
         - nfs_mounts
 
@@ -44,7 +50,6 @@
         homebrew_taps:
           - name: hashicorp/tap
         homebrew_installed_packages: "{{ additional_homebrew_packages | default([]) }}"
-      when: ansible_facts['os_family'] == 'Darwin'
       tags:
         - homebrew
 
@@ -53,7 +58,7 @@
         name: container
       # container.enabled: false (not just absent) actively tears down an
       # existing install - see roles/container/README.md.
-      when: container.enabled is defined and ansible_facts['os_family'] == 'Darwin'
+      when: container.enabled is defined
       tags:
         - container
 
@@ -62,7 +67,7 @@
         name: docker_desktop
       # docker.enabled: false (not just absent) actively tears down an
       # existing install - see roles/docker_desktop/README.md.
-      when: docker.enabled is defined and ansible_facts['os_family'] == 'Darwin'
+      when: docker.enabled is defined
       tags:
         - docker
         - container-runtime
@@ -72,7 +77,7 @@
         name: podman
       # podman.enabled: false (not just absent) actively tears down an
       # existing install - see roles/podman/README.md.
-      when: podman.enabled is defined and ansible_facts['os_family'] == 'Darwin'
+      when: podman.enabled is defined
       tags:
         - podman
         - container-runtime
@@ -87,13 +92,11 @@
     - name: Include Consul role
       ansible.builtin.include_role:
         name: consul
-      when: ansible_facts['os_family'] == 'Darwin'
       tags:
         - consul
 
     - name: Include Nomad role
       ansible.builtin.include_role:
         name: nomad
-      when: ansible_facts['os_family'] == 'Darwin'
       tags:
         - nomad

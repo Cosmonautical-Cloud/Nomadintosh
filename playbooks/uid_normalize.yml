@@ -1,9 +1,16 @@
 ---
-- name: Normalize UID
+- name: Discover host OS family
   hosts: all
   gather_facts: true
+  tasks:
+    - name: Group hosts by OS family
+      ansible.builtin.group_by:
+        key: "os_{{ ansible_facts['os_family'] }}"
+
+- name: Normalize UID
+  hosts: os_Darwin
+  gather_facts: false
   tasks:
     - name: Normalize UID for ansible_user
       ansible.builtin.include_role:
         name: uid_normalize
-      when: ansible_facts['os_family'] == 'Darwin'
