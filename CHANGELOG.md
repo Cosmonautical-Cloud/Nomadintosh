@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [1.5.2] - 2026-10-01
+
+### Fixed
+
+- `roles/nomad/templates/nomad.d/server.hcl.j2`: pinning `bind_addr` to the literal private IPv4 in 1.5.1 also moved Nomad's HTTP API off `0.0.0.0` by default (Nomad has no separate `client_addr`-style knob - every listener inherits `bind_addr` unless overridden), so `nomad` CLI / anything hitting `localhost:4646` stopped working. Added an explicit `addresses { http = "0.0.0.0" }` block so only the actual cluster gossip/RPC ports (serf/rpc) stay pinned to the literal IP; the HTTP API goes back to listening on loopback + the LAN IP like before.
+
 ## [1.5.1] - 2026-10-01
 
 ### Fixed

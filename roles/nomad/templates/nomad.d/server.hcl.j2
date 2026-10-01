@@ -21,6 +21,16 @@ data_dir   = "{{ nomad_working_dir }}"
 bind_addr  = "{{ ansible_facts['default_ipv4']['address'] }}"
 retry_join = ["{{ retry_join_hosts | join('", "') }}"]
 
+# bind_addr above is pinned to the literal private IP (see consul.d/server.hcl.j2
+# for why: "0.0.0.0" produced a dual-stack listener vulnerable to macOS's stale
+# IPv6 default routes). That also moves the HTTP API off 0.0.0.0 by default,
+# breaking anything using `nomad` CLI / localhost:4646 locally. Put it back
+# explicitly - only rpc/serf (the actual cluster gossip ports) need to stay
+# pinned to the literal IP.
+addresses {
+  http = "0.0.0.0"
+}
+
 # Control plane on this box
 server {
   enabled = {{ server.enabled | default(false) | lower }}
