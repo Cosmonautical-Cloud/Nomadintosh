@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [1.4.2] - 2026-09-30
+
+### Changed
+
+- Removed the hard dependency on `cosmonautical.notify` (from `galaxy.yml` and `collections/requirements.yml`) while the `cosmonautical` Galaxy namespace is still pending approval and the collection isn't publishable yet — it was blocking `ansible-galaxy collection install` for anyone pulling this collection fresh. The two call sites (`roles/nomad/tasks/install.yml`, `roles/software_update/tasks/main.yml`) now `include_tasks` their notify logic from a sibling `notify.yml`, gated behind `notify_enabled` (new var, default `false`). Dynamic `include_tasks` means `cosmonautical.notify.discord` is never resolved unless `notify_enabled: true`, so the collection doesn't need to be installed at all by default. Once `cosmonautical.notify` is live on Galaxy: add it back to `galaxy.yml`/`collections/requirements.yml`, and set `notify_enabled: true` in inventory to re-enable notifications — no further code changes needed.
+
 ## [1.4.1] - 2026-09-30
 
 ### Docs

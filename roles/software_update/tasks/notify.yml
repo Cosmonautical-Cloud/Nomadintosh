@@ -1,0 +1,10 @@
+---
+- name: Send Discord notification if restart is required
+  cosmonautical.notify.discord:
+    id: "{{ item.id }}"
+    token: "{{ item.token }}"
+    message: "Restart required for node {{ inventory_hostname }} after software updates."
+  loop: "{{ discord_webhooks | default([]) }}"
+  delegate_to: localhost
+  no_log: true
+  when: "'restart' in software_update_restart_required.stdout | lower"

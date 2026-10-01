@@ -1,4 +1,6 @@
 ---
+notify_enabled: false
+
 nomad_plugin_dir: "{{ nomad_working_dir }}/plugins"
 
 nomad_podman_driver_version: "0.6.4"
