@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [1.6.2] - 2026-10-01
+
+### Fixed
+
+- `roles/software_update/tasks/main.yml`: the "Install Command Line Tools for Xcode" task was reading `softwareupdate -l`'s *default* listing, which Apple hides `Command Line Tools for Xcode` from entirely unless an on-demand install flag file (`/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress`) exists first - the same signal `xcode-select --install` drops before it pops its GUI prompt. Without it, this task silently never saw CLT updates at all, not just around a new macOS release. Confirmed live on taurus: Apple had already published Command Line Tools for Xcode 27.0, invisible to `softwareupdate -l` until the flag file was set. The task now sets that flag, picks the newest available CLT label (`sort -V`, not just the first one listed), installs it headlessly, and clears the flag afterward - fully automated, no `xcode-select --install` GUI involved.
+
 ## [1.6.1] - 2026-10-01
 
 ### Changed

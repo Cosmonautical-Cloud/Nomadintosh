@@ -26,12 +26,42 @@
       ansible.builtin.include_tasks: notify.yml
       when: notify_enabled | default(false)
 
-- name: Install Command Line Tools for Xcode
+- name: Keep Command Line Tools for Xcode installed and up to date
   become: true
-  ansible.builtin.shell: |
-    label=$(softwareupdate -l 2>/dev/null | awk -F': ' '/\* Label: Command Line Tools/{print $2; exit}')
-    if [ -n "$label" ]; then
-      softwareupdate --install "$label"
-    fi
-  register: software_update_clt_install
-  changed_when: "'downloaded' in software_update_clt_install.stdout | lower"
+  block:
+    # softwareupdate hides "Command Line Tools for Xcode" from its default
+    # listing (`softwareupdate -l`) unless this on-demand flag file exists -
+    # it's the same signal `xcode-select --install` drops to trigger its GUI
+    # prompt. Without it, a CLT update can sit published and available for
+    # weeks with this role never noticing it.
+    - name: Signal install-on-demand intent so CLT shows up in softwareupdate -l
+      ansible.builtin.file:
+        path: /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+        state: touch
+        mode: '0644'
+
+    - name: Find the newest available Command Line Tools label
+      ansible.builtin.shell: |
+        set -o pipefail
+        softwareupdate -l 2>/dev/null | awk -F': ' '/\* Label: Command Line Tools/{print $2}' | sort -V | tail -1
+      args:
+        executable: /bin/bash
+      register: software_update_clt_label
+      changed_when: false
+      check_mode: false
+
+    - name: Install the Command Line Tools
+      ansible.builtin.command:
+        argv:
+          - softwareupdate
+          - --install
+          - "{{ software_update_clt_label.stdout }}"
+      when: software_update_clt_label.stdout | length > 0
+      register: software_update_clt_install
+      changed_when: true
+
+  always:
+    - name: Clear the install-on-demand signal file
+      ansible.builtin.file:
+        path: /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress
+        state: absent
