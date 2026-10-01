@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [3.1.1] - 2026-10-01
+
+### Docs
+
+- Fixed stale `anultravioletaurora/Nomaduntu` and `anultravioletaurora/Nomadable` links in `README.md` — both repos moved to the `Cosmonautical-Cloud` GitHub org (see 2.0.0 below); this repo's own README cross-links to them were never updated to match.
+
 ## [3.1.0] - 2026-10-01
 
 ### Added
