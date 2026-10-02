@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [5.0.1] - 2026-10-02
+
+### Fixed
+
+- `release_archives`: tarballs failed on macOS with `Failed to find handler ... GNU tar required`. `ansible.builtin.unarchive` only unpacks tarballs with GNU tar (zips like Maestro's went through `unzip`, so they worked). The role now downloads with `get_url` and unpacks with the system `tar` — bsdtar on macOS, which handles zips and tarballs alike. Behaviour is otherwise unchanged; already-installed versions (with their marker) aren't re-downloaded.
+
 ## [5.0.0] - 2026-10-02
 
 ### Breaking
