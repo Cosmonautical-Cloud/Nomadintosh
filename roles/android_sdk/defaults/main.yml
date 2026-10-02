@@ -1,0 +1,22 @@
+---
+# Where Android Studio puts it, so a host that already has Studio's SDK keeps
+# using it.
+android_sdk_root: "/Users/{{ ansible_user }}/Library/Android/sdk"
+
+# Packages to pre-install. Gradle and sdkmanager-driven tooling (e.g. CI
+# emulator actions) download anything missing on first use as long as the
+# licenses are accepted - which this role always does - so this list is about
+# not paying that download on first use, not about correctness.
+android_sdk_packages: []
+
+# sdkmanager needs a JDK. Keg-only, so it isn't linked onto PATH; anything
+# else that should use it (Gradle, a CI runner) points JAVA_HOME at
+# android_sdk_java_home.
+android_sdk_jdk_formula: openjdk@17
+android_sdk_java_home: "{{ homebrew_dir }}/opt/{{ android_sdk_jdk_formula }}/libexec/openjdk.jdk/Contents/Home"
+
+android_sdk_sdkmanager: "{{ android_sdk_root }}/cmdline-tools/latest/bin/sdkmanager"
+
+# Only used to bootstrap sdkmanager into an SDK root that has no
+# cmdline-tools yet; after that the root's own cmdline-tools;latest is used.
+android_sdk_cmdline_tools_bootstrap_url: https://dl.google.com/android/repository/commandlinetools-mac-15641748_latest.zip

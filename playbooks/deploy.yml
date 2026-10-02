@@ -6,15 +6,34 @@
     - name: Group hosts by OS family
       ansible.builtin.group_by:
         key: "os_{{ ansible_facts['os_family'] }}"
+      # Without this, any --tags run skips discovery and the deployment play
+      # below matches no hosts.
+      tags:
+        - always
 
 - name: Perform Nomadintosh deployment
   hosts: os_Darwin
   # Facts already gathered in the discovery play above.
   gather_facts: false
   tasks:
+    # Resolves the Nomad and Consul datacenters from DNS (and fails early on
+    # hosts that aren't listed by FQDN). Tagged always because the consul
+    # and nomad roles' templates read these facts.
+    - name: Resolve datacenters
+      ansible.builtin.include_role:
+        name: set_facts
+        apply:
+          tags:
+            - always
+      tags:
+        - always
+
     - name: Perform Software Update
       ansible.builtin.include_role:
         name: software_update
+        apply:
+          tags:
+            - software_update
       tags:
         - software_update
 
@@ -39,19 +58,21 @@
       tags:
         - nfs_mounts
 
-    - name: Install Homebrew
+    - name: Install Homebrew and packages
       ansible.builtin.include_role:
-        name: geerlingguy.mac.homebrew
-      vars:
-        homebrew_taps:
-          - name: hashicorp/tap
-        homebrew_installed_packages: "{{ additional_homebrew_packages | default([]) }}"
+        name: homebrew_packages
+        apply:
+          tags:
+            - homebrew
       tags:
         - homebrew
 
     - name: Include Container role
       ansible.builtin.include_role:
         name: container
+        apply:
+          tags:
+            - container
       # container.enabled: false (not just absent) actively tears down an
       # existing install - see roles/container/README.md.
       when: container.enabled is defined
@@ -61,6 +82,10 @@
     - name: Include Docker Desktop role
       ansible.builtin.include_role:
         name: docker_desktop
+        apply:
+          tags:
+            - docker
+            - container-runtime
       # docker.enabled: false (not just absent) actively tears down an
       # existing install - see roles/docker_desktop/README.md.
       when: docker.enabled is defined
@@ -71,6 +96,10 @@
     - name: Include Podman role
       ansible.builtin.include_role:
         name: podman
+        apply:
+          tags:
+            - podman
+            - container-runtime
       # podman.enabled: false (not just absent) actively tears down an
       # existing install - see roles/podman/README.md.
       when: podman.enabled is defined
@@ -78,9 +107,31 @@
         - podman
         - container-runtime
 
+    - name: Include release archives role
+      ansible.builtin.include_role:
+        name: release_archives
+        apply:
+          tags:
+            - release_archives
+      tags:
+        - release_archives
+
+    - name: Include Android SDK role
+      ansible.builtin.include_role:
+        name: android_sdk
+        apply:
+          tags:
+            - android_sdk
+      when: android_sdk.enabled | default(false)
+      tags:
+        - android_sdk
+
     - name: Include Seaweedfs role
       ansible.builtin.include_role:
         name: seaweedfs
+        apply:
+          tags:
+            - seaweedfs
       when: seaweedfs.master.enabled | default(false) or seaweedfs.volume.enabled | default(false)
       tags:
         - seaweedfs
@@ -88,11 +139,17 @@
     - name: Include Consul role
       ansible.builtin.include_role:
         name: consul
+        apply:
+          tags:
+            - consul
       tags:
         - consul
 
     - name: Include Nomad role
       ansible.builtin.include_role:
         name: nomad
+        apply:
+          tags:
+            - nomad
       tags:
         - nomad

@@ -6,7 +6,39 @@ This document explains how to structure your Ansible inventory file (`hosts.yml`
 
 ### Datacenter derivation
 
-The **group name** each host belongs to becomes its Consul/Nomad **datacenter**. This is derived automatically from `group_names` at runtime — you do not set a `datacenter` variable manually. Every host in the `cosmonautical` group will belong to the `cosmonautical` datacenter, and so on.
+The Nomad and Consul **datacenters come from DNS**, not from inventory groups — no variable to set:
+
+- **Nomad datacenter** = the host's second-to-last DNS label: `hopper.jellify.app` → `jellify`, `cassiopeia.cosmonautical.cloud` → `cosmonautical`.
+- **Consul datacenter** = that same label taken from the Consul servers (`server.enabled: true` hosts), which must all share one domain. A Consul datacenter is a separate cluster with its own servers, so a client in another domain (e.g. `hopper.jellify.app`) still joins the servers' datacenter (`cosmonautical`). `existing_consul_datacenter` (below) overrides it for runs whose inventory doesn't include the servers.
+
+So **every inventory host must be listed by its fully qualified name** (`host.<datacenter>.<tld>`) — the `set_facts` role fails the run up front otherwise. Use `ansible_host` if you need to connect by IP. Inventory groups are left entirely to roles and Nomad meta, and can mix hosts from any domain.
+
+### Targeting inventory groups from Nomad jobs
+
+Groups are freeform — a host can be in any number, across datacenters. Every Nomad client publishes its inventory groups as node meta, e.g. `inventory_groups = "ci_runners,jellify"`. A job can target any group without per-host config:
+
+```hcl
+constraint {
+  attribute = "${meta.inventory_groups}"
+  operator  = "set_contains"
+  value     = "ci_runners"
+}
+```
+
+### Merged list variables
+
+`additional_homebrew_packages`, `additional_homebrew_taps`, `release_archives` (lists) and `nomad_client_meta` (dict) are merged with every variable named `<name>__<suffix>` visible to the host. Ansible replaces lists across group/host precedence instead of merging them, so this lets a group add to the `all`-level list without repeating it:
+
+```yaml
+all:
+  vars:
+    additional_homebrew_packages: [fastfetch]
+ci_runners:
+  vars:
+    additional_homebrew_packages__ci:
+      - name: oven-sh/bun/bun@1.3.4   # taps + trusts oven-sh/bun automatically
+        exclusive: true               # removes any other bun formula first
+```
 
 ### Servers vs. clients
 
@@ -22,7 +54,7 @@ If a run's own inventory doesn't include the real Consul/Nomad servers at all �
 
 | Variable | Effect |
 |---|---|
-| `existing_consul_datacenter` | Fixes Consul's `datacenter` to this value instead of deriving it from whichever `server: true` host this run happens to find first. Nomad's own `datacenter` is unaffected — it's always this host's inventory group name, since it's purely a job-placement tag. |
+| `existing_consul_datacenter` | Fixes Consul's `datacenter` to this value instead of deriving it from the `server: true` hosts' domain. Nomad's own `datacenter` is unaffected — it's always this host's own domain label. |
 | `existing_cluster_servers` | A list of hostnames/IPs merged into `retry_join` for **both** Consul and Nomad, on top of whatever `server: true` hosts this run already found. |
 
 Left unset, this preserves the default behavior above — see `roles/consul/README.md` and `roles/nomad/README.md` for the exact precedence. Nomaduntu's own Consul/Nomad roles use the same two variables for the same purpose, so either OS's hosts can join a control plane whose servers live in the other repo's inventory.
@@ -43,7 +75,7 @@ all:
     <client1.example.com>:
       podman:
         enabled: true
-      gh_actions:
+      android_sdk:
         enabled: true
 ```
 
@@ -61,7 +93,10 @@ Variables defined directly under a hostname override any group-level `vars` for 
 | `ansible_ssh_private_key_file` | Path to the SSH private key |
 | `ansible_password` | SSH password (if not using key auth) |
 | `ansible_become_password` | `sudo` password |
-| `additional_homebrew_packages` | List of extra Homebrew packages to install on every host |
+| `additional_homebrew_packages` | List of extra Homebrew formulae for every host — plain names or `{name, exclusive}`. A fully qualified name (`user/tap/formula`) taps and trusts its tap automatically. `exclusive: true` removes other versions of the same formula first (for versioned formulae that all link the same binary). Merged with any `additional_homebrew_packages__<suffix>` lists |
+| `additional_homebrew_taps` | Extra taps (`user/repo`) to add **and trust**, for taps none of `additional_homebrew_packages` names (e.g. cask-only taps). Merged with any `additional_homebrew_taps__<suffix>` lists |
+| `release_archives` | List of `{name, version, url, dest, owner?, prune?}` version-pinned archives — see `roles/release_archives/README.md`. Merged with any `release_archives__<suffix>` lists |
+| `nomad_client_meta` | Dict of extra Nomad client `meta` keys. Merged with any `nomad_client_meta__<suffix>` dicts |
 | `existing_consul_datacenter` | Fixes Consul's datacenter instead of deriving it from the inventory (see above) |
 | `existing_cluster_servers` | Extra hosts merged into Consul's and Nomad's `retry_join` (see above) |
 | `nas_host` | Address of the NFS server `nfs_mounts_shares` are mounted from. **Required** if any host sets `nfs_mounts_shares` — no default |
@@ -73,8 +108,7 @@ Variables defined directly under a hostname override any group-level `vars` for 
 | `server.enabled` | `false` | Configures the host as a Nomad/Consul server node |
 | `podman.enabled` | _(absent)_ | `true` installs Podman, its machine, and the `nomad-driver-podman` plugin; `false` actively removes all three; absent leaves the host unmanaged either way (see `roles/podman/README.md`) |
 | `docker.enabled` | _(absent)_ | `true` installs Docker Desktop and the Nomad `docker` plugin config; `false` actively removes Docker Desktop; absent leaves the host unmanaged either way (see `roles/docker_desktop/README.md`) |
-| `gh_actions.enabled` | `false` | Deploys a GitHub Actions self-hosted runner as a Nomad job |
-| `gh_actions.env` | _(absent)_ | Map of environment variables injected into the runner process (see below) |
+| `android_sdk.enabled` | _(absent)_ | `true` installs a JDK and the Android SDK command-line tools, accepts licenses, and pre-installs `android_sdk_packages` (see `roles/android_sdk/README.md` for that and the other `android_sdk_*` variables) |
 | `container.enabled` | _(absent)_ | `true` installs Apple's Container CLI, its LaunchAgent, and the `nomad-driver-container` plugin; `false` actively removes all three; absent leaves the host unmanaged either way (see `roles/container/README.md`) |
 | `seaweedfs.master.enabled` / `seaweedfs.volume.enabled` | `false` | Installs SeaweedFS; an enabled volume registers a `seaweedfs-data` Nomad host volume |
 | `nfs_mounts_shares` | _(absent)_ | List of `{share_export_path}` NFS shares to mount (see below) |
@@ -109,20 +143,6 @@ cosmonautical:
 On `cassiopeia.cosmonautical.cloud` this resolves to `Cosmonautical`, `Books`, and `Cassiopeia`; on `taurus.cosmonautical.cloud` it resolves to the same two shared shares plus `Taurus`. No per-host override needed.
 
 The `jellify` group's `Jellify` share was granted 2026-09-27 on the same NAS as `cosmonautical` (whatever your inventory sets as `nas_host`) — its mount point (`/Volumes/Jellify`) has to match what `nomad-jobs`' `minecraft.nomad.hcl` expects, since that job's host volume points at this path.
-
-#### `gh_actions.env` format
-
-An optional map of key/value pairs passed as environment variables to the GitHub Actions runner process via the Nomad job's `env {}` block. Useful for variables that would normally be sourced from a login shell (e.g. `/etc/profile`) but are not visible to processes launched by Nomad:
-
-```yaml
-gh_actions:
-  enabled: true
-  env:
-    MY_VAR: "some-value"
-    ANOTHER_VAR: "another-value"
-```
-
-If `gh_actions.env` is absent, no `env {}` block is added to the job.
 
 #### `volumes` format
 
@@ -174,11 +194,9 @@ cosmonautical:
     galileo.jellify.app:
       podman:
         enabled: true
-      gh_actions:
-        enabled: true
-      minecraft:
+      android_sdk:
         enabled: true
       container:
         enabled: true
 ```
-In this example, `cosmonautical` and `jellify` are two separate datacenters. The three `cassiopeia`, `taurus`, and `copernicus` hosts form the `cosmonautical` control plane (`bootstrap_expect = 3`). `galileo` is a client-only node in the `jellify` datacenter running Nomad jobs via Podman.
+In this example, `cosmonautical` and `jellify` are two separate datacenters. The three `cassiopeia`, `taurus`, and `copernicus` hosts form the `cosmonautical` control plane (`bootstrap_expect = 3`). `galileo` is a client-only node in the `jellify` datacenter running Nomad jobs via Podman, with an Android SDK installed.

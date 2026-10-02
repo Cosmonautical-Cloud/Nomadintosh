@@ -1,0 +1,4 @@
+---
+# Third-party taps to mark trusted (`brew trust --tap`). Official taps are
+# always trusted and are skipped by Homebrew itself.
+homebrew_trust_taps: []

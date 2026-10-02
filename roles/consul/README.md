@@ -32,7 +32,7 @@ Role-level defaults in `defaults/main.yml` expand these into `consul_config_dir`
 
 ## No manual setup required (usually)
 
-Datacenter name, peer list, and server count are all derived from the inventory at template time — no variables need to be set by hand, *provided* this run's own inventory actually includes the hosts with `server.enabled: true`.
+The datacenter is the Consul servers' shared DNS domain label (see the `set_facts` role); peer list and server count are derived from the inventory at template time — no variables need to be set by hand, *provided* this run's own inventory actually includes the hosts with `server.enabled: true`.
 
 ### Joining an existing external cluster
 
@@ -40,7 +40,7 @@ If this run's inventory doesn't include the real Consul servers — e.g. a Semap
 
 | Variable | Effect |
 |---|---|
-| `existing_consul_datacenter` | Fixes `datacenter` to this value instead of deriving it from whichever `server.enabled` host this run happens to find first. Falls back to this host's own inventory group name if left unset and no `server.enabled` host is found in this run either, so a misconfigured run still renders a real datacenter rather than an empty one. |
+| `existing_consul_datacenter` | Fixes `datacenter` to this value instead of deriving it from the `server.enabled` hosts' domain. Falls back to this host's own domain label if left unset and no `server.enabled` host is found in this run either. |
 | `existing_cluster_servers` | A list of hostnames/IPs merged into `retry_join`, on top of any `server.enabled: true` hosts this run already found. |
 
 Left unset, this preserves the original behavior above. See `templates/consul.d/server.hcl.j2` for the exact precedence — Nomaduntu's own Consul role uses the same two variables for the same purpose.

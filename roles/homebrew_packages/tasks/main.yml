@@ -1,0 +1,58 @@
+---
+# additional_homebrew_packages / additional_homebrew_taps can each be split
+# across any number of variables: the base name plus every
+# <name>__<suffix> variable visible to the host (e.g. a group's
+# additional_homebrew_packages__runner). Ansible replaces lists rather than
+# merging them across group/host precedence, so this is how a group adds
+# packages without repeating the all-level list.
+- name: Merge additional Homebrew lists
+  ansible.builtin.set_fact:
+    homebrew_packages_merged: >-
+      {{ (additional_homebrew_packages | default([]))
+         + (query('ansible.builtin.vars', *query('ansible.builtin.varnames', '^additional_homebrew_packages__.+$') | sort) | flatten) }}
+    homebrew_packages_merged_taps: >-
+      {{ (additional_homebrew_taps | default([]))
+         + (query('ansible.builtin.vars', *query('ansible.builtin.varnames', '^additional_homebrew_taps__.+$') | sort) | flatten) }}
+
+# Entries are either a formula name or {name, exclusive}. A fully qualified
+# name (user/tap/formula) implies its tap: listing a tap's formula in IaC is
+# the decision to tap and trust it, so it doesn't also have to be listed in
+# additional_homebrew_taps. homebrew/* taps are official (always trusted, and
+# tapping homebrew/core would clone it in full) so they're never derived.
+- name: Resolve Homebrew packages and taps
+  ansible.builtin.set_fact:
+    homebrew_packages_resolved: |-
+      {% set out = [] %}
+      {% for p in homebrew_packages_merged %}
+      {%   set _ = out.append(p if p is mapping else {'name': p}) %}
+      {% endfor %}
+      {{ out }}
+    homebrew_packages_resolved_taps: |-
+      {% set out = [] %}
+      {% for t in homebrew_packages_merged_taps %}
+      {%   set _ = out.append(t.name if t is mapping else t) %}
+      {% endfor %}
+      {% for p in homebrew_packages_merged %}
+      {%   set name = p.name if p is mapping else p %}
+      {%   if name.split('/') | length == 3 and not name.startswith('homebrew/') %}
+      {%     set _ = out.append(name.split('/')[:2] | join('/')) %}
+      {%   endif %}
+      {% endfor %}
+      {{ out | unique }}
+
+- name: Trust third-party taps
+  ansible.builtin.include_role:
+    name: homebrew_trust
+  vars:
+    homebrew_trust_taps: "{{ homebrew_packages_resolved_taps }}"
+
+- name: Include exclusive-formula tasks
+  ansible.builtin.include_tasks: exclusive.yml
+  when: homebrew_packages_resolved | selectattr('exclusive', 'defined') | selectattr('exclusive') | length > 0
+
+- name: Install Homebrew, taps, and packages
+  ansible.builtin.include_role:
+    name: geerlingguy.mac.homebrew
+  vars:
+    homebrew_taps: "{{ (homebrew_packages_base_taps + homebrew_packages_resolved_taps) | unique }}"
+    homebrew_installed_packages: "{{ homebrew_packages_resolved | map(attribute='name') | list }}"

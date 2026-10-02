@@ -4,9 +4,14 @@ all:
     # SSH connection settings — applied to every host
     ansible_user: youruser
 
-    # Extra Homebrew packages to install on every host (optional)
+    # Extra Homebrew packages to install on every host (optional). Packages
+    # from a third-party tap should be fully qualified (user/tap/formula).
     additional_homebrew_packages: []
     #   - fastfetch
+
+    # Extra taps to add and trust on every host (optional) - only needed for
+    # taps none of the packages above names fully qualified
+    additional_homebrew_taps: []
 
     # NFS server to mount nfs_mounts_shares from - required if any host sets
     # nfs_mounts_shares (no default)
@@ -30,7 +35,8 @@ your-datacenter:
 
     client2.example.com:
       docker: true
-      gh_actions: true
+      android_sdk:
+        enabled: true
 
     client3.example.com:
       minecraft: true

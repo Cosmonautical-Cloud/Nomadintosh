@@ -1,8 +1,58 @@
 ---
-- name: Set datacenter fact for Nomad
-  ansible.builtin.set_fact:
-    datacenter: "{{ group_names | reject('equalto', 'all') | reject('equalto', 'ungrouped') | first }}"  # noqa: var-naming[no-role-prefix]
+# Datacenters come from DNS, not from inventory groups: a host's domain label
+# (hopper.jellify.app -> jellify) is its Nomad datacenter, and the Consul
+# servers' shared domain label is everyone's Consul datacenter. Inventory
+# groups are left free for roles and Nomad meta, mixing hosts across
+# datacenters however they like.
+- name: Assert inventory hostname is a fully qualified domain name
+  ansible.builtin.assert:
+    that:
+      - inventory_hostname is not match('^[0-9.]+$')
+      - inventory_hostname is not search(':')
+      - inventory_hostname.split('.') | length >= 3
+    fail_msg: >-
+      '{{ inventory_hostname }}' isn't a fully qualified host name. The
+      datacenter is derived from the second-to-last DNS label
+      (hopper.jellify.app -> jellify), so inventory hosts must be listed as
+      host.<datacenter>.<tld> - use ansible_host for an IP address.
+    quiet: true
 
-- name: Debug datacenter fact
+# A Consul datacenter is a separate cluster with its own servers, so every
+# agent joins the datacenter its servers are in, not its own domain's.
+# existing_consul_datacenter still wins for runs whose inventory doesn't
+# include the servers; with neither, this host's own domain is used (a
+# client-only run against a fresh cluster).
+- name: Resolve datacenters
+  ansible.builtin.set_fact:
+    datacenter: "{{ inventory_hostname.split('.')[-2] }}"  # noqa: var-naming[no-role-prefix]
+    consul_datacenter: >-  # noqa: var-naming[no-role-prefix]
+      {{ existing_consul_datacenter
+         | default(facts_server_datacenters | first if facts_server_datacenters | length > 0 else none, true)
+         | default(inventory_hostname.split('.')[-2], true) }}
+    facts_server_datacenters: "{{ facts_server_datacenters }}"
+  vars:
+    facts_server_datacenters: >-
+      {{ groups['all']
+         | select('in', hostvars)
+         | map('extract', hostvars)
+         | selectattr('server', 'defined')
+         | selectattr('server', 'mapping')
+         | selectattr('server.enabled', 'defined')
+         | selectattr('server.enabled')
+         | map(attribute='inventory_hostname')
+         | map('split', '.') | map('reverse') | map('list')
+         | map(attribute=1)
+         | unique | list }}
+
+- name: Assert Consul servers share one domain
+  ansible.builtin.assert:
+    that: facts_server_datacenters | length <= 1
+    fail_msg: >-
+      Consul servers span more than one domain
+      ({{ facts_server_datacenters | join(', ') }}). They form a single
+      Consul datacenter, so they must share a domain label.
+    quiet: true
+
+- name: Show resolved datacenters
   ansible.builtin.debug:
-    msg: "Datacenter set to {{ datacenter }}"
+    msg: "Nomad datacenter {{ datacenter }}, Consul datacenter {{ consul_datacenter }}"
