@@ -13,6 +13,5 @@
 - name: Apply LaunchAgents configuration
   ansible.builtin.import_tasks: launchagent.yml
 
-- name: Kickstart Consul services
+- name: Restart Consul if its config or package changed
   ansible.builtin.import_tasks: start.yml
-  when: consul_package_updated | default(false)

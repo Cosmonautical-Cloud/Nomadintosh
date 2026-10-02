@@ -13,3 +13,8 @@ consul_launchagent_program_args:
 consul_launchagent_working_dir: "{{ homebrew_dir }}/var"
 
 consul_launchagent_log_file: "consul.log"
+
+# Health polling after each rolling restart (see tasks/start.yml): up to
+# retries x delay seconds before the run fails and stops restarting others.
+consul_restart_retries: 36
+consul_restart_delay: 5

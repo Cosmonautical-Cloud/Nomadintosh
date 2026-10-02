@@ -33,13 +33,9 @@
         apply:
           tags:
             - nfs_mounts
-      # Originally scoped to cosmonautical only - jellify had no route to
-      # the NAS. As of 2026-09-27, jellify was granted access to its own
-      # export (Jellify) on the same NAS (10.10.37.32, see nas_host in
-      # group_vars/all.yml), so it's included here too. Both groups' shares
-      # are still just entries in each host's own nfs_mounts_shares list -
-      # nothing about the role itself is cosmonautical-specific.
-      when: "'cosmonautical' in group_names or 'jellify' in group_names"
+      # Runs for every host - the role itself is a no-op unless the host has
+      # a non-empty nfs_mounts_shares, so which hosts mount what is purely
+      # an inventory decision, not tied to any particular group name.
       tags:
         - nfs_mounts
 

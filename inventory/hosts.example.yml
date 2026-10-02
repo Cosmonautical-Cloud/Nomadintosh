@@ -8,6 +8,10 @@ all:
     additional_homebrew_packages: []
     #   - fastfetch
 
+    # NFS server to mount nfs_mounts_shares from - required if any host sets
+    # nfs_mounts_shares (no default)
+    # nas_host: 192.0.2.10
+
 # Each top-level group name becomes the Consul/Nomad datacenter for its hosts.
 # Hosts with `server: true` form the control plane; all others are client nodes.
 # See inventory/README.md for the full variable reference.

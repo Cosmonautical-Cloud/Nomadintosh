@@ -8,7 +8,7 @@ Installs and configures a [Consul](https://developer.hashicorp.com/consul/docs) 
 2. Installs or upgrades Consul via the `hashicorp/tap` Homebrew tap. If the *upgrade* fails but Consul is already installed and runnable, the failure is treated as a warning rather than fatal — the box keeps running its current version until Homebrew has a bottle for it (the common case right after a new macOS release, when the installed Command Line Tools can't build the formula from source either). A host with no working Consul at all still fails hard.
 3. Templates `server.hcl` into `/etc/consul.d/` — datacenter, node name, server/client mode, `bootstrap_expect`, and `retry_join` are all derived automatically from the inventory.
 4. Writes a LaunchAgent plist to `{{ launch_agents_dir }}/{{ consul_launchagent_label }}.plist` (defaults to `~/Library/LaunchAgents/homebrew.mxcl.consul.plist`) and bootstraps it into launchd if it isn't already running.
-5. If Consul was freshly installed or upgraded, the agent is restarted to pick up any configuration changes.
+5. If Consul was already running and either the package was upgraded or `server.hcl` changed, the agent is restarted (`launchctl kickstart -k`). Restarts roll one host at a time: after each one, the run waits for that agent to see a raft leader and for `/v1/operator/autopilot/health` to report healthy (up to `consul_restart_retries` × `consul_restart_delay` seconds) before restarting the next, and stops the whole run if it never does — so it never takes more than one server out of quorum at once.
 
 ## Host variables
 

@@ -12,6 +12,11 @@ nomad_launchagent_working_dir: "{{ homebrew_dir }}/var"
 
 nomad_launchagent_log_file: "nomad.log"
 
+# Health polling after each rolling restart (see tasks/launchagent.yml): up to
+# retries x delay seconds before the run fails and stops restarting others.
+nomad_restart_retries: 36
+nomad_restart_delay: 5
+
 nomad_plugin_dir: "{{ nomad_working_dir }}/plugins"
 
 nomad_podman_driver_version: "0.6.4"

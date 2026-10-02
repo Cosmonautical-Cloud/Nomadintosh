@@ -34,15 +34,23 @@
     # happens once, so a later config or binary change needs an explicit
     # restart to actually take effect (e.g. a driver plugin enabled/disabled
     # via container.enabled/podman.enabled/docker.enabled no longer applies
-    # until Nomad re-reads server.hcl).
-    - name: Restart Nomad (config or package changed)
-      when:
-        - nomad_launchctl.rc == 0
-        - nomad_server_config.changed or nomad_package_updated | default(false)
-      ansible.builtin.command:
-        argv:
-          - launchctl
-          - kickstart
-          - -k
-          - "gui/{{ ansible_user_uid }}/{{ nomad_launchagent_label }}"
-      changed_when: true
+    # until Nomad re-reads server.hcl). Restarts roll one host at a time,
+    # waiting for each agent and the server cluster to report healthy before
+    # moving on, so a run that changes every server never takes more than one
+    # of them out of quorum.
+    - name: Record whether Nomad needs a restart on this host
+      ansible.builtin.set_fact:
+        nomad_restart_needed: "{{ nomad_launchctl.rc == 0 and (nomad_server_config.changed or nomad_package_updated | default(false)) }}"
+
+- name: Roll Nomad restarts across hosts
+  any_errors_fatal: true
+  block:
+    - name: Restart Nomad one host at a time
+      ansible.builtin.include_tasks: rolling_restart.yml
+      loop: >-
+        {{ ansible_play_hosts | map('extract', hostvars)
+           | selectattr('nomad_restart_needed', 'defined') | selectattr('nomad_restart_needed')
+           | map(attribute='inventory_hostname') | list }}
+      loop_control:
+        loop_var: nomad_restart_host
+      when: inventory_hostname == ansible_play_hosts[0]
