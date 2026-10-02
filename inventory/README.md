@@ -64,6 +64,7 @@ Variables defined directly under a hostname override any group-level `vars` for 
 | `additional_homebrew_packages` | List of extra Homebrew packages to install on every host |
 | `existing_consul_datacenter` | Fixes Consul's datacenter instead of deriving it from the inventory (see above) |
 | `existing_cluster_servers` | Extra hosts merged into Consul's and Nomad's `retry_join` (see above) |
+| `nas_host` | Address of the NFS server `nfs_mounts_shares` are mounted from. **Required** if any host sets `nfs_mounts_shares` — no default |
 
 ### Host variables (set per-host)
 
@@ -107,7 +108,7 @@ cosmonautical:
 
 On `cassiopeia.cosmonautical.cloud` this resolves to `Cosmonautical`, `Books`, and `Cassiopeia`; on `taurus.cosmonautical.cloud` it resolves to the same two shared shares plus `Taurus`. No per-host override needed.
 
-The `jellify` group's `Jellify` share was granted 2026-09-27 on the same NAS as `cosmonautical` (`10.10.37.32`, see `nas_host` in `playbooks/group_vars/all.yml`) — its mount point (`/Volumes/Jellify`) has to match what `nomad-jobs`' `minecraft.nomad.hcl` expects, since that job's host volume points at this path.
+The `jellify` group's `Jellify` share was granted 2026-09-27 on the same NAS as `cosmonautical` (whatever your inventory sets as `nas_host`) — its mount point (`/Volumes/Jellify`) has to match what `nomad-jobs`' `minecraft.nomad.hcl` expects, since that job's host volume points at this path.
 
 #### `gh_actions.env` format
 

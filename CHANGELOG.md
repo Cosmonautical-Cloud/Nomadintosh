@@ -2,7 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
-## [3.2.0] - 2026-10-02
+## [4.0.0] - 2026-10-02
+
+### Breaking
+
+- `nas_host` no longer has a default. It used to be hardcoded to `10.10.37.32` in `playbooks/group_vars/all.yml`, but it's site-specific, so it now has to be set in your own inventory (`group_vars`/`host_vars`) or as an extra var (e.g. Semaphore variables). The `nfs_mounts` role asserts it's set, before changing anything, on any host with a non-empty `nfs_mounts_shares`; hosts without shares are unaffected.
+- `playbooks/deploy.yml`: the `nfs_mounts` role is no longer limited to hosts in groups literally named `cosmonautical` or `jellify` — it now runs for every host and is a no-op unless that host has a non-empty `nfs_mounts_shares`. Hosts in other groups that already set `nfs_mounts_shares` (previously silently ignored) will start mounting them, and need `nas_host` set.
 
 ### Changed
 

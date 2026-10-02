@@ -50,6 +50,7 @@ Hosts are organised into named groups; the group name becomes the Consul/Nomad [
 | `podman.enabled` | `true` / `false` / _(absent)_ | Installs/removes Podman, its machine, its LaunchAgent, and the Nomad `nomad-driver-podman` plugin |
 | `docker.enabled` | `true` / `false` / _(absent)_ | Installs/removes Docker Desktop and the Nomad `docker` plugin config |
 | `volumes` | list of `{name, path}` | Configures [Nomad host volumes](https://developer.hashicorp.com/nomad/docs/configuration/client#host_volume) on the client |
+| `nas_host` | NAS address | **Required** whenever `nfs_mounts_shares` is set — the NFS server to mount from. No default; set it in your inventory or extra vars |
 | `nfs_mounts_shares` | list of `{share_export_path}` | NFS shares to mount from `nas_host` via a watchdog LaunchDaemon. Mount point is always `volume_mount_path` (`/Volumes`) + `/<name>`, `<name>` being `share_export_path`'s final path component — matches the SMB paths these shares replace |
 | `seaweedfs.master.enabled` / `seaweedfs.volume.enabled` | `true` / _(absent)_ | Installs SeaweedFS; an enabled volume registers a `seaweedfs-data` Nomad host volume |
 | `existing_consul_datacenter` | _(absent)_ | Fixes Consul's `datacenter` when this run's own inventory doesn't include the real servers — see the `consul` role's README |
@@ -117,7 +118,7 @@ For every host, the playbook performs the following steps:
 1. **Facts** — asserts the host is running macOS and sets the `datacenter` fact derived from the host's inventory group name.
 2. **Software Update** — downloads all pending macOS system updates via `softwareupdate`, installs any available Command Line Tools for Xcode, and warns if a restart is required.
 3. **Sysctl tuning** — deploys a LaunchDaemon that applies `kern.ipc.somaxconn = 1024` (macOS's default of 128 causes connection refusals under concurrent load).
-4. **NFS mounts** _(`cosmonautical`/`jellify` groups)_ — deploys a watchdog LaunchDaemon that mounts each host's `nfs_mounts_shares` and remounts any that go missing.
+4. **NFS mounts** _(hosts with `nfs_mounts_shares`)_ — deploys a watchdog LaunchDaemon that mounts each host's `nfs_mounts_shares` and remounts any that go missing.
 5. **Homebrew** — [Homebrew](https://brew.sh/) is the package manager of choice for this project. The playbook installs Homebrew if not present, taps `hashicorp/tap`, and installs any packages listed in `additional_homebrew_packages`. All system packages — including Consul, Nomad, Podman, and the Apple Container CLI — are managed exclusively through Homebrew.
 6. **Apple Container** _(hosts with `container: true`)_ — installs Apple's [Container](https://github.com/apple/container) CLI via Homebrew and registers a LaunchAgent that starts the container system at login. On the Nomad side, the playbook downloads and installs [`nomad-driver-container`](https://github.com/anultravioletaurora/nomad-driver-container) — a custom Nomad task driver that integrates Nomad's scheduling with Apple's Container runtime. This allows Nomad jobs to run OCI containers natively on macOS using Apple's Virtualization.framework, without Docker Desktop or a Podman VM. The driver is configured in `nomad.d/server.hcl` with garbage collection enabled and log collection active.
 7. **Docker Desktop** _(hosts with `docker: true`)_ — installs and configures Docker Desktop.

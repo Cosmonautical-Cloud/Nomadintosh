@@ -16,7 +16,7 @@ Each share mounts at the same path its SMB counterpart used to (`/Volumes/<name>
 
 ## Configuration
 
-`nas_host` / `nas_user` live in [`playbooks/group_vars/all.yml`](../../playbooks/group_vars/all.yml) (shared with the Nomad variable `cosmonautical/nas`, which job templates read via `nomadVar` — Ansible has no bridge into Nomad's variable store, so it's duplicated rather than hardcoded per-role).
+`nas_host` — the NFS server's address — has **no default** and must be set in your own inventory (`group_vars`/`host_vars`) or as an extra var (e.g. Semaphore variables). If a host has `nfs_mounts_shares` but no `nas_host`, the role fails before touching anything. `nas_user` defaults to `ansible_user` in [`playbooks/group_vars/all.yml`](../../playbooks/group_vars/all.yml).
 
 Each `nfs_mounts_shares` entry only needs `share_export_path`; the mount point is always `volume_mount_path` (`/Volumes`) + `/<name>`, with `<name>` being the final path component of `share_export_path`:
 
@@ -31,6 +31,7 @@ nfs_mounts_shares:
 | Variable | Default | Why |
 |---|---|---|
 | `nfs_mounts_shares` | `[]` | Opt-in per host/group — see above |
+| `nas_host` | _(none — required)_ | Site-specific; must come from your inventory or extra vars |
 | `volume_mount_path` | `/Volumes` | Parent directory every share mounts under, matching the SMB paths these shares replace |
 | `nfs_mounts_deadtimeout` | `30` | Seconds an unresponsive mount is tolerated before the kernel force-unmounts it; the watchdog then notices it's gone and remounts — worst-case unattended recovery is roughly this plus one `nfs_mounts_watchdog_interval` |
 | `nfs_mounts_watchdog_interval` | `30` | Seconds between watchdog checks |
