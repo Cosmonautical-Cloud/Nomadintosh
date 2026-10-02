@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: Violet Caulfield
+  description: Marks third-party Homebrew taps as trusted (brew trust --tap) so Homebrew 7+ will load their formulae and casks.
+  license: MIT
+  min_ansible_version: "2.15"
+dependencies: []

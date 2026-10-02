@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: Violet Caulfield
+  description: Installs a JDK and the Android SDK command-line tools, accepts SDK licenses, and pre-installs a list of SDK packages.
+  license: MIT
+  min_ansible_version: "2.15"
+dependencies: []

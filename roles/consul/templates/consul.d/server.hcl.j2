@@ -1,28 +1,18 @@
-{# Resolve the datacenter name and server node list from inventory. Both
-   existing_consul_datacenter and existing_cluster_servers are optional -
-   set them (e.g. via Semaphore variable groups or extra-vars) when this
-   run's own inventory doesn't include the real Consul servers (e.g. a
-   Semaphore run scoped to just the jellify group, with cosmonautical's
-   servers living in a separate inventory source entirely) and these hosts
-   should join that already-running control plane instead. Left undefined,
-   this preserves the original behavior: datacenter and retry_join are both
-   derived from whichever hosts in *this* run have server.enabled: true,
-   the same mechanism Nomaduntu's own Consul role falls back to. #}
-{% set ns = namespace(dc=none, servers=[]) %}
+{# consul_datacenter is set by the set_facts role: the domain label shared by
+   the Consul servers (cassiopeia.cosmonautical.cloud -> cosmonautical), so
+   clients from other domains still join the servers' datacenter.
+   existing_consul_datacenter and existing_cluster_servers are optional - set
+   them (e.g. via Semaphore variable groups or extra-vars) when this run's own
+   inventory doesn't include the real Consul servers (e.g. a Semaphore run
+   scoped to just the jellify hosts) and these hosts should join that
+   already-running control plane instead. #}
+{% set ns = namespace(servers=[]) %}
 {% for host in groups['all'] %}
 {%   if 'server' in hostvars[host] and hostvars[host]['server'] is mapping and hostvars[host]['server']['enabled'] | default(false) %}
 {%     set ns.servers = ns.servers + [host] %}
-{%     if ns.dc is none %}
-{%       set ns.dc = hostvars[host]['group_names'] | reject('equalto', 'all') | reject('equalto', 'ungrouped') | first %}
-{%     endif %}
 {%   endif %}
 {% endfor %}
-{# Falls back to this host's own group name if no server.enabled host was
-   found in this run AND no override was set - otherwise datacenter would
-   render empty for a client-only group run on its own (e.g. jellify without
-   existing_consul_datacenter set), the same failure mode existing_cluster_servers
-   exists to avoid. #}
-{% set datacenter = existing_consul_datacenter | default(ns.dc, true) | default(group_names | reject('equalto', 'all') | reject('equalto', 'ungrouped') | first, true) %}
+{% set datacenter = consul_datacenter %}
 {% set retry_join_hosts = (ns.servers + (existing_cluster_servers | default([]))) | unique %}
 datacenter = "{{ datacenter }}"
 node_name  = "{{ inventory_hostname_short }}"

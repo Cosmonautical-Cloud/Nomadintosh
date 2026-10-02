@@ -20,6 +20,7 @@ Installs and configures a [Nomad](https://developer.hashicorp.com/nomad/docs) ag
 | `podman.enabled` | `true` / `false` / _(absent)_ | Installs/removes the `nomad-driver-podman` plugin and enables/disables it in the Nomad config (see the `podman` role for Podman itself) |
 | `docker.enabled` | `true` / `false` / _(absent)_ | Enables/disables the built-in `docker` plugin in the Nomad config (see the `docker_desktop` role for Docker Desktop itself) |
 | `volumes` | list of `{name, path}` | Registers [host volumes](https://developer.hashicorp.com/nomad/docs/configuration/client#host_volume) on the client so Nomad jobs can mount local paths. |
+| `nomad_client_meta` (+ `__<suffix>`) | dict / _(absent)_ | Extra client `meta` keys, merged across every `nomad_client_meta__<suffix>` dict. Every client also gets `meta.inventory_groups` — its inventory groups, comma-separated — so jobs can target a group with `set_contains` |
 
 ## Configuration
 
@@ -37,8 +38,8 @@ Role-level defaults in `defaults/main.yml` set `plugin_dir`, `podman_driver_vers
 
 ## No manual setup required (usually)
 
-Datacenter name, peer list, and server count are all derived from the inventory at template time — no variables need to be set by hand, *provided* this run's own inventory actually includes the hosts with `server.enabled: true`.
+The datacenter comes from this host's DNS name (see the `set_facts` role); peer list and server count are derived from the inventory at template time — no variables need to be set by hand, *provided* this run's own inventory actually includes the hosts with `server.enabled: true`.
 
 ### Joining an existing external cluster
 
-Nomad's own `datacenter` is always this host's inventory group name (a job-placement tag, independent of Consul's) and is never overridden. `retry_join`, though, only finds servers that are part of *this run's* inventory — if they're not (e.g. a Semaphore run scoped to just the `jellify` group), set `existing_cluster_servers` (a list of hostnames/IPs, same variable the `consul` role uses) to merge in the real servers from elsewhere. See `templates/nomad.d/server.hcl.j2` and the `consul` role's README for the full explanation.
+Nomad's own `datacenter` is always this host's DNS domain label (`hopper.jellify.app` → `jellify`, set by the `set_facts` role) — a job-placement tag, independent of Consul's — and is never overridden. `retry_join`, though, only finds servers that are part of *this run's* inventory — if they're not (e.g. a Semaphore run scoped to just the `jellify` group), set `existing_cluster_servers` (a list of hostnames/IPs, same variable the `consul` role uses) to merge in the real servers from elsewhere. See `templates/nomad.d/server.hcl.j2` and the `consul` role's README for the full explanation.

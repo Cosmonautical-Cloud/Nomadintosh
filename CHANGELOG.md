@@ -2,6 +2,29 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [5.0.0] - 2026-10-02
+
+### Breaking
+
+- **Datacenters come from DNS instead of inventory group names.** A host's Nomad datacenter is its second-to-last DNS label (`hopper.jellify.app` → `jellify`); the Consul datacenter is the label shared by the `server.enabled` hosts (`existing_consul_datacenter` still overrides it). Hosts must be listed by fully qualified name — the `set_facts` role (previously present but never run) now runs first on every deploy, tagged `always`, and fails on IPs or short names, or on Consul servers spanning more than one domain. Inventory groups are now free for roles and Nomad meta; a host in several groups no longer risks landing in the wrong datacenter. For inventories whose group names already match their hosts' domains (the cosmonautical/jellify layout this was built for), nothing changes.
+
+### Added
+
+- `homebrew_packages` role (replaces the inline `geerlingguy.mac.homebrew` include in `playbooks/deploy.yml`). A fully qualified package (`user/tap/formula`) now taps **and trusts** its tap automatically. Entries can be `{name, exclusive: true}` to uninstall other versions of the same formula first, so pinned versioned formulae that share a binary (e.g. `oven-sh/bun/bun@<version>`) can be bumped without a link conflict. New `additional_homebrew_taps` variable for taps no package names; `hashicorp/tap` was previously the only possible tap.
+- `homebrew_trust` role: `brew trust --tap` for third-party taps. Homebrew 7 won't load formulae from an untrusted tap unless the fully qualified name is on that command's own command line, so later upgrades from those taps were silently skipped. Neither `geerlingguy.mac.homebrew` nor `community.general.homebrew` supports `brew trust`.
+- `release_archives` role: installs version-pinned tools from release archives into `<dest>/<version>`, with a `<dest>/current` symlink (pointing into the archive's single top-level directory when it has one) and pruning of earlier versions. For tools whose package manager can't pin versions.
+- `android_sdk` role (`android_sdk.enabled`): installs a JDK (`openjdk@17`), bootstraps the SDK command-line tools into `android_sdk_root` if missing, accepts SDK licenses, and pre-installs `android_sdk_packages` (only the missing ones, so reruns report no change).
+- Merged list variables: `additional_homebrew_packages`, `additional_homebrew_taps`, `release_archives` and `nomad_client_meta` are combined with every `<name>__<suffix>` variable visible to the host, so a group can add to the `all`-level list without repeating it.
+- `nomad`: every client publishes its inventory groups as node meta `inventory_groups` (comma-separated, excluding `all`/`ungrouped`/the playbook's own `os_*` groups), so jobs can target any inventory group with a `set_contains` constraint. `nomad_client_meta` adds arbitrary extra keys. **Changes `server.hcl` on every host**, so the first deploy of this version rolling-restarts every Nomad agent.
+
+### Fixed
+
+- `playbooks/deploy.yml`: `--tags` runs did nothing. The OS-discovery `group_by` task had no tags, so any `--tags` run skipped it and the deployment play matched no hosts; it's now tagged `always`. Separately, the `software_update`, `container`, `docker_desktop`, `podman`, `seaweedfs`, `consul` and `nomad` includes didn't `apply` their tags to the included role's tasks, so even with discovery fixed, e.g. `--tags nomad` would skip every Nomad task.
+
+### Docs
+
+- Removed the stale `gh_actions.enabled`/`gh_actions.env` docs from `inventory/README.md` and `inventory/hosts.example.yml` — that role was removed 2026-09-05 and the keys have done nothing since.
+
 ## [4.0.0] - 2026-10-02
 
 ### Breaking
