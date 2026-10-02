@@ -4,6 +4,9 @@
     release_archives_version_dir: "{{ release_archive.dest }}/{{ release_archive.version }}"
     release_archives_marker: "{{ release_archive.dest }}/{{ release_archive.version }}/.release_archives_complete"
     release_archives_owner: "{{ release_archive.owner | default(ansible_user) }}"
+    # Hidden and outside the version directory, so neither `current` nor
+    # pruning ever sees it.
+    release_archives_download: "{{ release_archive.dest }}/.{{ release_archive.version }}-{{ release_archive.url | basename }}"
 
 - name: Create version directory for {{ release_archive.name }}
   become: true
@@ -17,16 +20,36 @@
 # The marker (written only after a successful unpack) is what makes this
 # idempotent - a half-unpacked directory from an interrupted run gets
 # unpacked again rather than treated as installed.
+- name: Check unpack marker for {{ release_archive.name }}
+  ansible.builtin.stat:
+    path: "{{ release_archives_marker }}"
+  register: release_archives_marker_stat
+
+# Not ansible.builtin.unarchive: it insists on GNU tar for tarballs, and
+# macOS ships bsdtar (libarchive), which unpacks zips and tarballs alike.
 - name: Download and unpack {{ release_archive.name }}
-  ansible.builtin.unarchive:
-    src: "{{ release_archive.url }}"
-    dest: "{{ release_archives_version_dir }}"
-    remote_src: true
-    creates: "{{ release_archives_marker }}"
+  when: not release_archives_marker_stat.stat.exists
   become: true
   become_user: "{{ release_archives_owner }}"
+  block:
+    - name: Download {{ release_archive.name }}
+      ansible.builtin.get_url:
+        url: "{{ release_archive.url }}"
+        dest: "{{ release_archives_download }}"
+        mode: '0644'
+
+    - name: Unpack {{ release_archive.name }}
+      ansible.builtin.command:
+        argv: [tar, -xf, "{{ release_archives_download }}", -C, "{{ release_archives_version_dir }}"]
+      changed_when: true
+
+    - name: Remove download of {{ release_archive.name }}
+      ansible.builtin.file:
+        path: "{{ release_archives_download }}"
+        state: absent
 
 - name: Write unpack marker for {{ release_archive.name }}
+  when: not release_archives_marker_stat.stat.exists
   ansible.builtin.copy:
     dest: "{{ release_archives_marker }}"
     content: "{{ release_archive.url }}\n"
