@@ -1,0 +1,23 @@
+---
+# Consul is already running by this point (launchagent.yml only bootstraps it
+# when it isn't), so a config or binary change needs an explicit restart to
+# take effect - Homebrew swapping the binary on disk doesn't touch the live
+# process. Restarts roll one host at a time, waiting for each agent to rejoin
+# and the server cluster to report healthy before moving on, so a run that
+# changes every server never takes more than one of them out of quorum.
+- name: Record whether Consul needs a restart on this host
+  ansible.builtin.set_fact:
+    consul_restart_needed: "{{ consul_launchctl.rc == 0 and (consul_server_config.changed or consul_package_updated | default(false)) }}"
+
+- name: Roll Consul restarts across hosts
+  any_errors_fatal: true
+  block:
+    - name: Restart Consul one host at a time
+      ansible.builtin.include_tasks: rolling_restart.yml
+      loop: >-
+        {{ ansible_play_hosts | map('extract', hostvars)
+           | selectattr('consul_restart_needed', 'defined') | selectattr('consul_restart_needed')
+           | map(attribute='inventory_hostname') | list }}
+      loop_control:
+        loop_var: consul_restart_host
+      when: inventory_hostname == ansible_play_hosts[0]

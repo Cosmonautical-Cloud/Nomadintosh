@@ -18,6 +18,7 @@
       register: consul_launchctl
       failed_when: false
       changed_when: false
+      check_mode: false
 
     - name: Load Consul Launch Agent
       when: consul_launchctl.rc != 0

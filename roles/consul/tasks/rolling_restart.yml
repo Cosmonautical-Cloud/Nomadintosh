@@ -1,0 +1,32 @@
+---
+# Runs once per host needing a restart, from the first play host, delegating
+# to consul_restart_host - see start.yml.
+- name: Restart Consul on {{ consul_restart_host }}
+  delegate_to: "{{ consul_restart_host }}"
+  ansible.builtin.command:
+    argv:
+      - launchctl
+      - kickstart
+      - -k
+      - "gui/{{ hostvars[consul_restart_host]['ansible_facts']['user_uid'] }}/{{ consul_launchagent_label }}"
+  changed_when: true
+
+- name: Wait for Consul to see a leader on {{ consul_restart_host }}
+  delegate_to: "{{ consul_restart_host }}"
+  ansible.builtin.uri:
+    url: "http://{{ hostvars[consul_restart_host]['ansible_facts']['default_ipv4']['address'] }}:8500/v1/status/leader"
+  register: consul_restart_leader
+  until: consul_restart_leader.status == 200 and consul_restart_leader.json | default('') | length > 0
+  retries: "{{ consul_restart_retries }}"
+  delay: "{{ consul_restart_delay }}"
+  check_mode: false
+
+- name: Wait for the Consul server cluster to report healthy
+  delegate_to: "{{ consul_restart_host }}"
+  ansible.builtin.uri:
+    url: "http://{{ hostvars[consul_restart_host]['ansible_facts']['default_ipv4']['address'] }}:8500/v1/operator/autopilot/health"
+  register: consul_restart_autopilot
+  until: consul_restart_autopilot.status == 200 and consul_restart_autopilot.json.Healthy | default(false)
+  retries: "{{ consul_restart_retries }}"
+  delay: "{{ consul_restart_delay }}"
+  check_mode: false

@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [3.2.0] - 2026-10-02
+
+### Changed
+
+- `consul`/`nomad`: restarts after a config or package change now roll one host at a time instead of firing on every host in parallel. Each host's flag is recorded (`consul_restart_needed`/`nomad_restart_needed`), then the first play host loops over the flagged ones, delegating a `launchctl kickstart -k` to each and waiting for it to report healthy before moving on — Consul: `/v1/status/leader` non-empty, then `/v1/operator/autopilot/health` `Healthy`; Nomad: `/v1/agent/health`, then `/v1/operator/autopilot/health` `Healthy`. A host that never gets healthy within `*_restart_retries` × `*_restart_delay` (default 36 × 5s) fails the whole run (`any_errors_fatal`) so nothing else gets restarted on top of it. Previously a config change touching every server restarted all of them at once, dropping quorum.
+
+### Fixed
+
+- `consul`: Consul was never actually restarted after an upgrade or config change. `tasks/start.yml` (imported as "Kickstart Consul services" when the package changed) was an empty file, and the `server.hcl` template result wasn't registered at all — so a Homebrew upgrade left the old binary running until something else bounced it (the "stale Consul binary" failures seen on taurus and hopper on 2026-10-01). It now restarts on either change, through the rolling restart above.
+- `consul`: "Check if Consul is already running" (`launchctl list`) now sets `check_mode: false`, matching Nomad's equivalent — in `--check` runs it was skipped, leaving `consul_launchctl.rc` undefined for the tasks that read it.
+
 ## [3.1.2] - 2026-10-01
 
 ### Fixed

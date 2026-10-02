@@ -6,3 +6,4 @@
     mode: '0644'
     owner: root
     group: wheel
+  register: consul_server_config

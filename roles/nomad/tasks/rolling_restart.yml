@@ -1,0 +1,35 @@
+---
+# Runs once per host needing a restart, from the first play host, delegating
+# to nomad_restart_host - see launchagent.yml.
+- name: Restart Nomad on {{ nomad_restart_host }}
+  delegate_to: "{{ nomad_restart_host }}"
+  ansible.builtin.command:
+    argv:
+      - launchctl
+      - kickstart
+      - -k
+      - "gui/{{ hostvars[nomad_restart_host]['ansible_facts']['user_uid'] }}/{{ nomad_launchagent_label }}"
+  changed_when: true
+
+# A timeout here right after a Homebrew upgrade is usually macOS's Local
+# Network (TCC) prompt for the newly signed nomad binary - it can't reach
+# other servers until someone approves it on that host's screen.
+- name: Wait for Nomad agent health on {{ nomad_restart_host }}
+  delegate_to: "{{ nomad_restart_host }}"
+  ansible.builtin.uri:
+    url: "http://{{ hostvars[nomad_restart_host]['ansible_facts']['default_ipv4']['address'] }}:4646/v1/agent/health"
+  register: nomad_restart_agent
+  until: nomad_restart_agent.status == 200
+  retries: "{{ nomad_restart_retries }}"
+  delay: "{{ nomad_restart_delay }}"
+  check_mode: false
+
+- name: Wait for the Nomad server cluster to report healthy
+  delegate_to: "{{ nomad_restart_host }}"
+  ansible.builtin.uri:
+    url: "http://{{ hostvars[nomad_restart_host]['ansible_facts']['default_ipv4']['address'] }}:4646/v1/operator/autopilot/health"
+  register: nomad_restart_autopilot
+  until: nomad_restart_autopilot.status == 200 and nomad_restart_autopilot.json.Healthy | default(false)
+  retries: "{{ nomad_restart_retries }}"
+  delay: "{{ nomad_restart_delay }}"
+  check_mode: false
