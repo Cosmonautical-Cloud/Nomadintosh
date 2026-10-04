@@ -1,2 +1,2 @@
 inventory/hosts.yml
-.ansible/
+.ansible/importer_result.json

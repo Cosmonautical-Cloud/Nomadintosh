@@ -1,4 +1,0 @@
----
-# Taps every host gets regardless of inventory - Consul and Nomad come from here.
-homebrew_packages_base_taps:
-  - hashicorp/tap

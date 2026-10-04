@@ -1,8 +1,0 @@
----
-- name: Include Apple Container setup tasks
-  ansible.builtin.include_tasks: setup.yml
-  when: container.enabled | default(false)
-
-- name: Include Apple Container teardown tasks
-  ansible.builtin.include_tasks: teardown.yml
-  when: not (container.enabled | default(false))

@@ -17,8 +17,9 @@ all:
     # nfs_mounts_shares (no default)
     # nas_host: 192.0.2.10
 
-# Each top-level group name becomes the Consul/Nomad datacenter for its hosts.
-# Hosts with `server: true` form the control plane; all others are client nodes.
+# Datacenters come from each host's DNS name, not its group - list hosts by
+# FQDN. Hosts with `server: true` form the control plane; all others are
+# client nodes.
 # See inventory/README.md for the full variable reference.
 
 your-datacenter:
@@ -40,3 +41,9 @@ your-datacenter:
 
     client3.example.com:
       minecraft: true
+
+# Magic group: its hosts also get Xcode and an iOS simulator runtime. Sign in
+# to the App Store on each one first. See README.md#magic-groups.
+github_runners:
+  hosts:
+    client2.example.com:

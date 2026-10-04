@@ -1,5 +1,0 @@
----
-# Each entry: {name, version, url, dest, owner?, prune?}. Merged with every
-# release_archives__<suffix> variable visible to the host, same convention as
-# additional_homebrew_packages.
-release_archives: []

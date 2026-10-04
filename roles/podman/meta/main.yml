@@ -1,7 +1,0 @@
----
-galaxy_info:
-  author: Violet Caulfield
-  description: Installs or removes Podman based on podman.enabled, managing a Podman machine on the host and a LaunchAgent to keep it running across reboots.
-  license: MIT
-  min_ansible_version: "2.15"
-dependencies: []

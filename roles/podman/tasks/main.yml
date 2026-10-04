@@ -1,8 +1,0 @@
----
-- name: Include Podman setup tasks
-  ansible.builtin.include_tasks: setup.yml
-  when: podman.enabled | default(false)
-
-- name: Include Podman teardown tasks
-  ansible.builtin.include_tasks: teardown.yml
-  when: not (podman.enabled | default(false))

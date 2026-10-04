@@ -2,6 +2,25 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.0.0] - 2026-10-04
+
+### Breaking
+
+- **The general-purpose macOS roles moved to [Macible](https://github.com/Cosmonautical-Cloud/Macible)** (`cosmonautical.macible` 0.2.0), so workstations and the cluster share one copy. These role names no longer exist here: `software_update`, `homebrew_packages`, `homebrew_trust`, `release_archives`, `android_sdk`, `docker_desktop`, `podman`, `container`, `nfs_mounts`, `clean` and `reboot`. Use `cosmonautical.macible.<role>` instead. `deploy.yml`, `clean.yml` and `reboot.yml` already do, with the same tags, and every inventory variable keeps its name, so a deploy behaves the same. Nomadintosh keeps `consul`, `nomad` (including the Podman, Container and Docker driver wiring), `seaweedfs`, `set_facts`, `sysctl` and `uid_normalize`.
+- **`github_runners` is now a magic group: its hosts get Xcode.** `playbooks/deploy.yml` runs [`cosmonautical.macible.xcode`](https://github.com/Cosmonautical-Cloud/Macible/blob/main/roles/xcode/README.md) (tag `xcode`) on every host in `github_runners`. It installs Xcode from the App Store, selects it, accepts its license, runs its first-launch setup and downloads an iOS simulator runtime, so those hosts are ready for `xcodebuild` and simulator-based tests such as Maestro iOS flows. mas can't sign in on current macOS, so **sign in to the App Store on each `github_runners` Mac before deploying this version**. Otherwise the deploy fails on that host with a message saying so. Hosts outside the group are unaffected.
+
+### Changed
+
+- New dependency on `cosmonautical.macible` (`>=0.2.0`) in `galaxy.yml` and `collections/requirements.yml`.
+- `hashicorp/tap` is now set as `homebrew_packages_base_taps` in `playbooks/group_vars/all.yml`, because Macible's `homebrew_packages` defaults that to `[]`.
+- `galaxy.yml` gains a `build_ignore` for `inventory/hosts.yml` and `.ansible`, so a local `ansible-galaxy collection build` can't package a credentials-bearing inventory. CI builds from a clean checkout, so published versions never contained it.
+- License metadata now matches `LICENSE`: GPL-3.0-only in `galaxy.yml` and every role's `meta/main.yml`. They wrongly said MIT before.
+
+### Docs
+
+- New [Built on Macible](README.md#built-on-macible) and [Magic groups](README.md#magic-groups) README sections, plus a pointer in `inventory/README.md`. `github_runners` is the only magic group so far. Links to the moved roles' READMEs now point at Macible.
+- `inventory/hosts.example.yml`: added a `github_runners` example and fixed a comment that still said group names set datacenters (they've come from DNS since 5.0.0).
+
 ## [5.0.1] - 2026-10-02
 
 ### Fixed

@@ -1,7 +1,0 @@
----
-galaxy_info:
-  author: Violet Caulfield
-  description: Runs brew cleanup to prune old Homebrew Cellar versions and cached downloads left behind by upgrades.
-  license: MIT
-  min_ansible_version: "2.15"
-dependencies: []

@@ -1,7 +1,0 @@
----
-galaxy_info:
-  author: Violet Caulfield
-  description: Reboots the host and waits for it to come back online.
-  license: MIT
-  min_ansible_version: "2.15"
-dependencies: []

@@ -6,6 +6,11 @@
 # supplying its own inventory instead of inventory/hosts.yml.
 homebrew_dir: /opt/homebrew
 
+# Every host gets hashicorp/tap - Consul and Nomad come from it.
+# (cosmonautical.macible.homebrew_packages defaults this to [].)
+homebrew_packages_base_taps:
+  - hashicorp/tap
+
 log_dir: "{{ homebrew_dir }}/var/log"
 
 config_dir: /etc

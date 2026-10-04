@@ -2,6 +2,6 @@
 galaxy_info:
   author: Violet Caulfield
   description: Applies a list of kernel sysctl tunables on boot via a LaunchDaemon, since macOS doesn't reliably honor /etc/sysctl.conf.
-  license: MIT
+  license: GPL-3.0-only
   min_ansible_version: "2.15"
 dependencies: []
