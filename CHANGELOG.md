@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.0.0] - 2026-10-04
+
+### Breaking
+
+- **`github_runners` is now a magic group: its hosts get Xcode.** `playbooks/deploy.yml` runs [`cosmonautical.macible.xcode`](https://github.com/Cosmonautical-Cloud/Macible/blob/main/roles/xcode/README.md) (tag `xcode`) on every host in `github_runners`. The role installs Xcode from the App Store, selects it, accepts its license, runs its first-launch setup and downloads an iOS simulator runtime, so those hosts are ready for `xcodebuild` and simulator-based tests such as Maestro iOS flows. mas can't sign in on current macOS, so **sign in to the App Store on each `github_runners` Mac before deploying this version**. Otherwise the deploy fails on that host with a message saying so. Hosts outside the group are unaffected.
+
+### Added
+
+- New dependency on [`cosmonautical.macible`](https://github.com/Cosmonautical-Cloud/Macible) (`>=0.1.0`), the generic macOS roles shared with workstations. It's in `galaxy.yml` and `collections/requirements.yml`.
+
+### Docs
+
+- New [Magic groups](README.md#magic-groups) section in the README (and a pointer in `inventory/README.md`) listing the group names the playbook acts on. `github_runners` is the only one so far.
+- `inventory/hosts.example.yml`: added a `github_runners` example and fixed a comment that still said group names set datacenters (they've come from DNS since 5.0.0).
+
 ## [5.0.1] - 2026-10-02
 
 ### Fixed

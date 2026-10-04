@@ -126,6 +126,19 @@
       tags:
         - android_sdk
 
+    # Magic group: membership alone turns this on - see README.md#magic-groups.
+    # After homebrew_packages, since the App Store install needs mas from
+    # Homebrew.
+    - name: Include Xcode role
+      ansible.builtin.include_role:
+        name: cosmonautical.macible.xcode
+        apply:
+          tags:
+            - xcode
+      when: "'github_runners' in group_names"
+      tags:
+        - xcode
+
     - name: Include Seaweedfs role
       ansible.builtin.include_role:
         name: seaweedfs

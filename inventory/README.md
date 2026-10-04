@@ -25,6 +25,10 @@ constraint {
 }
 ```
 
+### Magic groups
+
+Group names don't change what's installed, with one exception: hosts in `github_runners` also get Xcode, ready for the iOS Simulator, through `cosmonautical.macible.xcode`. Sign in to the App Store on those Macs before their first run. See [Magic groups](../README.md#magic-groups) in the main README.
+
 ### Merged list variables
 
 `additional_homebrew_packages`, `additional_homebrew_taps`, `release_archives` (lists) and `nomad_client_meta` (dict) are merged with every variable named `<name>__<suffix>` visible to the host. Ansible replaces lists across group/host precedence instead of merging them, so this lets a group add to the `all`-level list without repeating it:

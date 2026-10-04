@@ -74,13 +74,23 @@ galileo.jellify.app:
     enabled: true
 ```
 
+### Magic groups
+
+Inventory groups are freeform, but the playbook gives one group name a meaning of its own. Adding a host to it is enough; there's no variable to set:
+
+| Group | What the playbook does for its hosts |
+|---|---|
+| `github_runners` | Installs Xcode and gets it ready for headless builds and the iOS Simulator, using [`cosmonautical.macible.xcode`](https://github.com/Cosmonautical-Cloud/Macible/blob/main/roles/xcode/README.md): installs it from the App Store, selects it, accepts its license, runs its first-launch setup and downloads an iOS simulator runtime. **Before the first run, sign in to the App Store on each of these Macs**, in the GUI, as `ansible_user`. mas can't sign in by itself, and the deploy stops on a host where Xcode is still missing. Override `xcode_simulator_platforms` (default `[iOS]`) to download other runtimes |
+
+The rest of a runner's toolchain (runner binary, Maestro, Android SDK and so on) is ordinary variables that a parent project such as [Nomadable](https://github.com/Cosmonautical-Cloud/Nomadable) sets for this group. Every group, magic or not, is also published as Nomad node meta (`inventory_groups`) for job constraints.
+
 ## Playbooks
 
 Ansible Galaxy has no synopsis/description field for playbooks shipped inside a collection (unlike roles, which get one from `meta/main.yml`), so this is the canonical place either one is documented:
 
 | Playbook | Description |
 |---|---|
-| `playbooks/deploy.yml` | Full deployment — installs and configures Consul, Nomad, and every optional role (`container`, `podman`, `docker_desktop`, `release_archives`, `android_sdk`, `seaweedfs`, `sysctl`, `nfs_mounts`, `software_update`) according to each host's inventory variables. See [What it does](#what-it-does) below for the full breakdown. Idempotent — safe to rerun. |
+| `playbooks/deploy.yml` | Full deployment — installs and configures Consul, Nomad, and every optional role (`container`, `podman`, `docker_desktop`, `release_archives`, `android_sdk`, `xcode`, `seaweedfs`, `sysctl`, `nfs_mounts`, `software_update`) according to each host's inventory variables. See [What it does](#what-it-does) below for the full breakdown. Idempotent — safe to rerun. |
 | `playbooks/reboot.yml` | Reboots every host in the inventory one at a time (`serial: 1`) via Ansible's `reboot` module, waiting up to 5 minutes for each to come back before moving to the next. Used to clear macOS's lingering stale IPv6 `utunN` routes and pick up Command Line Tools / OS updates — see the `reboot` role's [README](roles/reboot/README.md). Does not run the full deployment; pair it with `playbooks/deploy.yml` if a deploy is also needed. |
 | `playbooks/uid_normalize.yml` | Changes `ansible_user`'s UID to a fixed value and re-owns their known local directories to match — needed on hosts using the Jellify NFS export. **Not part of a normal deployment pass** — mutates a live user account's numeric identity; run it deliberately, one host at a time, with `--limit`. See the `uid_normalize` role's [README](roles/uid_normalize/README.md) before using it. |
 | `playbooks/clean.yml` | Runs `brew cleanup` to prune old Homebrew Cellar versions and cached downloads left behind by upgrades — see the `clean` role's [README](roles/clean/README.md). Does not run the full deployment. |
@@ -131,9 +141,10 @@ For every host, the playbook performs the following steps:
 8. **Podman** _(hosts with `podman: true`)_ — installs Podman, initialises the machine, and installs the [`nomad-driver-podman`](https://developer.hashicorp.com/nomad/plugins/drivers/podman) plugin.
 9. **Release archives** _(hosts with `release_archives`)_ — downloads each pinned archive into `<dest>/<version>`, points `<dest>/current` at it, and prunes earlier versions.
 10. **Android SDK** _(hosts with `android_sdk.enabled`)_ — installs a JDK, bootstraps the SDK command-line tools, accepts licenses, and pre-installs `android_sdk_packages`.
-11. **SeaweedFS** _(hosts with `seaweedfs.master.enabled` / `seaweedfs.volume.enabled`)_ — installs SeaweedFS via Homebrew and creates the host's volume directory.
-12. **Consul** — creates config/data directories, installs Consul via Homebrew, templates [`server.hcl`](https://developer.hashicorp.com/consul/docs/reference/agent/configuration-file) with datacenter, node name, server/client mode, and [`retry_join`](https://developer.hashicorp.com/consul/docs/reference/agent/configuration-file/general#retry_join) derived from inventory (or `existing_consul_datacenter`/`existing_cluster_servers`, if this run's inventory doesn't include the real servers — see the `consul` role's README), and registers a LaunchAgent.
-13. **Nomad** — creates config/data directories, installs Nomad via Homebrew, templates [`server.hcl`](https://developer.hashicorp.com/nomad/docs/configuration) (including [`bootstrap_expect`](https://developer.hashicorp.com/nomad/docs/configuration/server#bootstrap_expect) and [`retry_join`](https://developer.hashicorp.com/nomad/docs/configuration/server_join), also honoring `existing_cluster_servers`), configures any enabled task driver plugins (`nomad-driver-container`, `nomad-driver-podman`), publishes the host's inventory groups as `meta.inventory_groups` (plus any `nomad_client_meta`), and registers a LaunchAgent.
+11. **Xcode** _(hosts in the [`github_runners`](#magic-groups) group)_ — installs Xcode from the App Store with [Macible](https://github.com/Cosmonautical-Cloud/Macible)'s `xcode` role, selects it, accepts its license, runs its first-launch setup and downloads any missing simulator runtimes.
+12. **SeaweedFS** _(hosts with `seaweedfs.master.enabled` / `seaweedfs.volume.enabled`)_ — installs SeaweedFS via Homebrew and creates the host's volume directory.
+13. **Consul** — creates config/data directories, installs Consul via Homebrew, templates [`server.hcl`](https://developer.hashicorp.com/consul/docs/reference/agent/configuration-file) with datacenter, node name, server/client mode, and [`retry_join`](https://developer.hashicorp.com/consul/docs/reference/agent/configuration-file/general#retry_join) derived from inventory (or `existing_consul_datacenter`/`existing_cluster_servers`, if this run's inventory doesn't include the real servers — see the `consul` role's README), and registers a LaunchAgent.
+14. **Nomad** — creates config/data directories, installs Nomad via Homebrew, templates [`server.hcl`](https://developer.hashicorp.com/nomad/docs/configuration) (including [`bootstrap_expect`](https://developer.hashicorp.com/nomad/docs/configuration/server#bootstrap_expect) and [`retry_join`](https://developer.hashicorp.com/nomad/docs/configuration/server_join), also honoring `existing_cluster_servers`), configures any enabled task driver plugins (`nomad-driver-container`, `nomad-driver-podman`), publishes the host's inventory groups as `meta.inventory_groups` (plus any `nomad_client_meta`), and registers a LaunchAgent.
 
 Services are managed as macOS LaunchAgents (Nomad, Consul, and optionally the Podman machine and Apple Container system). Consul and Nomad are restarted only when their config or package actually changed, and those restarts roll one host at a time — each restarted agent, and the server cluster's autopilot health, must report healthy before the next host is restarted, so a run that changes every server never takes more than one of them out of quorum. UID normalization is not part of this playbook — see `playbooks/uid_normalize.yml` above.
 

@@ -4,3 +4,6 @@ collections:
   - name: community.general
   - name: cosmonautical.notify
     version: "0.0.1"
+  # Generic macOS roles (xcode) shared with workstations.
+  - name: cosmonautical.macible
+    version: "0.1.0"
