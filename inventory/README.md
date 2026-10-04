@@ -99,7 +99,7 @@ Variables defined directly under a hostname override any group-level `vars` for 
 | `ansible_become_password` | `sudo` password |
 | `additional_homebrew_packages` | List of extra Homebrew formulae for every host — plain names or `{name, exclusive}`. A fully qualified name (`user/tap/formula`) taps and trusts its tap automatically. `exclusive: true` removes other versions of the same formula first (for versioned formulae that all link the same binary). Merged with any `additional_homebrew_packages__<suffix>` lists |
 | `additional_homebrew_taps` | Extra taps (`user/repo`) to add **and trust**, for taps none of `additional_homebrew_packages` names (e.g. cask-only taps). Merged with any `additional_homebrew_taps__<suffix>` lists |
-| `release_archives` | List of `{name, version, url, dest, owner?, prune?}` version-pinned archives — see `roles/release_archives/README.md`. Merged with any `release_archives__<suffix>` lists |
+| `release_archives` | List of `{name, version, url, dest, owner?, prune?}` version-pinned archives — see [Macible's `release_archives` README](https://github.com/Cosmonautical-Cloud/Macible/blob/main/roles/release_archives/README.md). Merged with any `release_archives__<suffix>` lists |
 | `nomad_client_meta` | Dict of extra Nomad client `meta` keys. Merged with any `nomad_client_meta__<suffix>` dicts |
 | `existing_consul_datacenter` | Fixes Consul's datacenter instead of deriving it from the inventory (see above) |
 | `existing_cluster_servers` | Extra hosts merged into Consul's and Nomad's `retry_join` (see above) |
@@ -110,10 +110,10 @@ Variables defined directly under a hostname override any group-level `vars` for 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `server.enabled` | `false` | Configures the host as a Nomad/Consul server node |
-| `podman.enabled` | _(absent)_ | `true` installs Podman, its machine, and the `nomad-driver-podman` plugin; `false` actively removes all three; absent leaves the host unmanaged either way (see `roles/podman/README.md`) |
-| `docker.enabled` | _(absent)_ | `true` installs Docker Desktop and the Nomad `docker` plugin config; `false` actively removes Docker Desktop; absent leaves the host unmanaged either way (see `roles/docker_desktop/README.md`) |
-| `android_sdk.enabled` | _(absent)_ | `true` installs a JDK and the Android SDK command-line tools, accepts licenses, and pre-installs `android_sdk_packages` (see `roles/android_sdk/README.md` for that and the other `android_sdk_*` variables) |
-| `container.enabled` | _(absent)_ | `true` installs Apple's Container CLI, its LaunchAgent, and the `nomad-driver-container` plugin; `false` actively removes all three; absent leaves the host unmanaged either way (see `roles/container/README.md`) |
+| `podman.enabled` | _(absent)_ | `true` installs Podman, its machine, and the `nomad-driver-podman` plugin; `false` actively removes all three; absent leaves the host unmanaged either way (see [Macible's `podman` README](https://github.com/Cosmonautical-Cloud/Macible/blob/main/roles/podman/README.md)) |
+| `docker.enabled` | _(absent)_ | `true` installs Docker Desktop and the Nomad `docker` plugin config; `false` actively removes Docker Desktop; absent leaves the host unmanaged either way (see [Macible's `docker_desktop` README](https://github.com/Cosmonautical-Cloud/Macible/blob/main/roles/docker_desktop/README.md)) |
+| `android_sdk.enabled` | _(absent)_ | `true` installs a JDK and the Android SDK command-line tools, accepts licenses, and pre-installs `android_sdk_packages` (see [Macible's `android_sdk` README](https://github.com/Cosmonautical-Cloud/Macible/blob/main/roles/android_sdk/README.md) for that and the other `android_sdk_*` variables) |
+| `container.enabled` | _(absent)_ | `true` installs Apple's Container CLI, its LaunchAgent, and the `nomad-driver-container` plugin; `false` actively removes all three; absent leaves the host unmanaged either way (see [Macible's `container` README](https://github.com/Cosmonautical-Cloud/Macible/blob/main/roles/container/README.md)) |
 | `seaweedfs.master.enabled` / `seaweedfs.volume.enabled` | `false` | Installs SeaweedFS; an enabled volume registers a `seaweedfs-data` Nomad host volume |
 | `nfs_mounts_shares` | _(absent)_ | List of `{share_export_path}` NFS shares to mount (see below) |
 | `volumes` | _(absent)_ | List of host volumes to expose to the Nomad client (see below) |

@@ -15,4 +15,4 @@
   tasks:
     - name: Reboot Node
       ansible.builtin.include_role:
-        name: reboot
+        name: cosmonautical.macible.reboot

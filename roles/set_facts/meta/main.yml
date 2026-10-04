@@ -2,6 +2,6 @@
 galaxy_info:
   author: Violet Caulfield
   description: Resolves the Nomad and Consul datacenters from each host's DNS name and fails early on hosts not listed by FQDN.
-  license: MIT
+  license: GPL-3.0-only
   min_ansible_version: "2.15"
 dependencies: []

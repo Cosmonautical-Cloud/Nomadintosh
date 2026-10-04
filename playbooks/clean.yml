@@ -13,4 +13,4 @@
   tasks:
     - name: Run brew cleanup
       ansible.builtin.include_role:
-        name: clean
+        name: cosmonautical.macible.clean

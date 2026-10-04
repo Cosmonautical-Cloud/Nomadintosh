@@ -16,9 +16,9 @@ Installs and configures a [Nomad](https://developer.hashicorp.com/nomad/docs) ag
 | Variable | Values | Effect |
 |---|---|---|
 | `server` | `true` / _(absent)_ | Runs this node as a Nomad server (scheduler). Without it the node runs as a client only. |
-| `container.enabled` | `true` / `false` / _(absent)_ | Installs/removes the `nomad-driver-container` plugin and enables/disables it in the Nomad config (see the `container` role for the CLI itself) |
-| `podman.enabled` | `true` / `false` / _(absent)_ | Installs/removes the `nomad-driver-podman` plugin and enables/disables it in the Nomad config (see the `podman` role for Podman itself) |
-| `docker.enabled` | `true` / `false` / _(absent)_ | Enables/disables the built-in `docker` plugin in the Nomad config (see the `docker_desktop` role for Docker Desktop itself) |
+| `container.enabled` | `true` / `false` / _(absent)_ | Installs/removes the `nomad-driver-container` plugin and enables/disables it in the Nomad config (see Macible's `container` role for the CLI itself) |
+| `podman.enabled` | `true` / `false` / _(absent)_ | Installs/removes the `nomad-driver-podman` plugin and enables/disables it in the Nomad config (see Macible's `podman` role for Podman itself) |
+| `docker.enabled` | `true` / `false` / _(absent)_ | Enables/disables the built-in `docker` plugin in the Nomad config (see Macible's `docker_desktop` role for Docker Desktop itself) |
 | `volumes` | list of `{name, path}` | Registers [host volumes](https://developer.hashicorp.com/nomad/docs/configuration/client#host_volume) on the client so Nomad jobs can mount local paths. |
 | `nomad_client_meta` (+ `__<suffix>`) | dict / _(absent)_ | Extra client `meta` keys, merged across every `nomad_client_meta__<suffix>` dict. Every client also gets `meta.inventory_groups` — its inventory groups, comma-separated — so jobs can target a group with `set_contains` |
 

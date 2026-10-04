@@ -1,7 +1,0 @@
----
-galaxy_info:
-  author: Violet Caulfield
-  description: Merges additional_homebrew_* lists, taps and trusts the taps they name, removes conflicting formulae, then runs geerlingguy.mac.homebrew.
-  license: MIT
-  min_ansible_version: "2.15"
-dependencies: []

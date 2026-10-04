@@ -29,6 +29,10 @@ Longer term, Nomad's multi-platform support means I can add Linux or Windows age
 
 </details>
 
+## Built on Macible
+
+The general-purpose macOS roles (Software Update, Homebrew packages and taps, NFS mounts, the Apple Container, Podman and Docker Desktop runtimes, release archives, the Android SDK, Xcode, `brew cleanup` and reboots) live in [Macible](https://github.com/Cosmonautical-Cloud/Macible) (`cosmonautical.macible`). Workstations use them too. This collection depends on it and keeps only what's specific to the cluster: Consul, Nomad and its task-driver plugins, SeaweedFS, sysctl tuning, UID normalization and datacenter facts. The inventory variables are the same either way.
+
 ## Requirements
 
 - Ansible installed on the control machine (`brew install ansible`)
@@ -53,10 +57,10 @@ Each host's Nomad [**datacenter**](https://developer.hashicorp.com/nomad/docs/co
 | `nas_host` | NAS address | **Required** whenever `nfs_mounts_shares` is set — the NFS server to mount from. No default; set it in your inventory or extra vars |
 | `nfs_mounts_shares` | list of `{share_export_path}` | NFS shares to mount from `nas_host` via a watchdog LaunchDaemon. Mount point is always `volume_mount_path` (`/Volumes`) + `/<name>`, `<name>` being `share_export_path`'s final path component — matches the SMB paths these shares replace |
 | `seaweedfs.master.enabled` / `seaweedfs.volume.enabled` | `true` / _(absent)_ | Installs SeaweedFS; an enabled volume registers a `seaweedfs-data` Nomad host volume |
-| `android_sdk.enabled` | `true` / _(absent)_ | Installs a JDK and the Android SDK command-line tools, accepts SDK licenses, and pre-installs `android_sdk_packages` — see the `android_sdk` role's [README](roles/android_sdk/README.md) |
-| `release_archives` | list of `{name, version, url, dest}` | Version-pinned tools installed from release archives into `<dest>/<version>` with a `<dest>/current` symlink — see the `release_archives` role's [README](roles/release_archives/README.md) |
+| `android_sdk.enabled` | `true` / _(absent)_ | Installs a JDK and the Android SDK command-line tools, accepts SDK licenses, and pre-installs `android_sdk_packages` — see Macible's `android_sdk` role's [README](https://github.com/Cosmonautical-Cloud/Macible/blob/main/roles/android_sdk/README.md) |
+| `release_archives` | list of `{name, version, url, dest}` | Version-pinned tools installed from release archives into `<dest>/<version>` with a `<dest>/current` symlink — see Macible's `release_archives` role's [README](https://github.com/Cosmonautical-Cloud/Macible/blob/main/roles/release_archives/README.md) |
 | `nomad_client_meta` | dict | Extra Nomad client `meta` keys. Every client also gets `meta.inventory_groups` (its inventory groups, comma-separated) automatically |
-| `additional_homebrew_packages` / `additional_homebrew_taps` | lists | Extra formulae and taps. A fully qualified formula (`user/tap/formula`) taps **and trusts** its tap automatically; `{name, exclusive: true}` removes other versions of that formula first — see the `homebrew_packages` role's [README](roles/homebrew_packages/README.md) |
+| `additional_homebrew_packages` / `additional_homebrew_taps` | lists | Extra formulae and taps. A fully qualified formula (`user/tap/formula`) taps **and trusts** its tap automatically; `{name, exclusive: true}` removes other versions of that formula first — see Macible's `homebrew_packages` role's [README](https://github.com/Cosmonautical-Cloud/Macible/blob/main/roles/homebrew_packages/README.md) |
 | `existing_consul_datacenter` | _(absent)_ | Fixes Consul's `datacenter` when this run's own inventory doesn't include the real servers — see the `consul` role's README |
 | `existing_cluster_servers` | list of hostnames/IPs | Extra hosts merged into Consul's and Nomad's `retry_join`, for the same reason as above |
 
@@ -91,9 +95,9 @@ Ansible Galaxy has no synopsis/description field for playbooks shipped inside a 
 | Playbook | Description |
 |---|---|
 | `playbooks/deploy.yml` | Full deployment — installs and configures Consul, Nomad, and every optional role (`container`, `podman`, `docker_desktop`, `release_archives`, `android_sdk`, `xcode`, `seaweedfs`, `sysctl`, `nfs_mounts`, `software_update`) according to each host's inventory variables. See [What it does](#what-it-does) below for the full breakdown. Idempotent — safe to rerun. |
-| `playbooks/reboot.yml` | Reboots every host in the inventory one at a time (`serial: 1`) via Ansible's `reboot` module, waiting up to 5 minutes for each to come back before moving to the next. Used to clear macOS's lingering stale IPv6 `utunN` routes and pick up Command Line Tools / OS updates — see the `reboot` role's [README](roles/reboot/README.md). Does not run the full deployment; pair it with `playbooks/deploy.yml` if a deploy is also needed. |
+| `playbooks/reboot.yml` | Reboots every host in the inventory one at a time (`serial: 1`) via Ansible's `reboot` module, waiting up to 5 minutes for each to come back before moving to the next. Used to clear macOS's lingering stale IPv6 `utunN` routes and pick up Command Line Tools / OS updates — see Macible's `reboot` role's [README](https://github.com/Cosmonautical-Cloud/Macible/blob/main/roles/reboot/README.md). Does not run the full deployment; pair it with `playbooks/deploy.yml` if a deploy is also needed. |
 | `playbooks/uid_normalize.yml` | Changes `ansible_user`'s UID to a fixed value and re-owns their known local directories to match — needed on hosts using the Jellify NFS export. **Not part of a normal deployment pass** — mutates a live user account's numeric identity; run it deliberately, one host at a time, with `--limit`. See the `uid_normalize` role's [README](roles/uid_normalize/README.md) before using it. |
-| `playbooks/clean.yml` | Runs `brew cleanup` to prune old Homebrew Cellar versions and cached downloads left behind by upgrades — see the `clean` role's [README](roles/clean/README.md). Does not run the full deployment. |
+| `playbooks/clean.yml` | Runs `brew cleanup` to prune old Homebrew Cellar versions and cached downloads left behind by upgrades — see Macible's `clean` role's [README](https://github.com/Cosmonautical-Cloud/Macible/blob/main/roles/clean/README.md). Does not run the full deployment. |
 
 ### Running them
 
@@ -129,7 +133,7 @@ ansible-playbook -i inventory/hosts.yml playbooks/deploy.yml --limit <hostname>
 
 ## What it does
 
-For every host, the playbook performs the following steps:
+For every host, the playbook performs the following steps. Steps 2 and 4–11 are Macible roles.
 
 1. **Facts** — asserts the host is listed by fully qualified name, and sets the `datacenter` (Nomad: this host's domain label) and `consul_datacenter` (the Consul servers' domain label, or `existing_consul_datacenter`) facts.
 2. **Software Update** — downloads all pending macOS system updates via `softwareupdate`, installs any available Command Line Tools for Xcode, and warns if a restart is required.

@@ -7,7 +7,7 @@ version: 6.0.0
 readme: README.md
 description: An Ansible collection for deploying Nomad + Consul on a macOS cluster.
 license:
-  - MIT
+  - GPL-3.0-only
 tags:
   - nomad
   - consul
@@ -22,4 +22,10 @@ dependencies:
   geerlingguy.mac: "*"
   community.general: "*"
   cosmonautical.notify: ">=0.0.1"
-  cosmonautical.macible: ">=0.1.0"
+  cosmonautical.macible: ">=0.2.0"
+# Never ship a local inventory (it can hold credentials) or the local
+# collection cache. CI builds from a clean checkout, but a local build
+# would otherwise include inventory/hosts.yml.
+build_ignore:
+  - .ansible
+  - inventory/hosts.yml

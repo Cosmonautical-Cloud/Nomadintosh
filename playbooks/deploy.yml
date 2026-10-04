@@ -30,7 +30,7 @@
 
     - name: Perform Software Update
       ansible.builtin.include_role:
-        name: software_update
+        name: cosmonautical.macible.software_update
         apply:
           tags:
             - software_update
@@ -48,7 +48,7 @@
 
     - name: Mount NFS shares
       ansible.builtin.include_role:
-        name: nfs_mounts
+        name: cosmonautical.macible.nfs_mounts
         apply:
           tags:
             - nfs_mounts
@@ -60,7 +60,7 @@
 
     - name: Install Homebrew and packages
       ansible.builtin.include_role:
-        name: homebrew_packages
+        name: cosmonautical.macible.homebrew_packages
         apply:
           tags:
             - homebrew
@@ -69,7 +69,7 @@
 
     - name: Include Container role
       ansible.builtin.include_role:
-        name: container
+        name: cosmonautical.macible.container
         apply:
           tags:
             - container
@@ -81,7 +81,7 @@
 
     - name: Include Docker Desktop role
       ansible.builtin.include_role:
-        name: docker_desktop
+        name: cosmonautical.macible.docker_desktop
         apply:
           tags:
             - docker
@@ -95,7 +95,7 @@
 
     - name: Include Podman role
       ansible.builtin.include_role:
-        name: podman
+        name: cosmonautical.macible.podman
         apply:
           tags:
             - podman
@@ -109,7 +109,7 @@
 
     - name: Include release archives role
       ansible.builtin.include_role:
-        name: release_archives
+        name: cosmonautical.macible.release_archives
         apply:
           tags:
             - release_archives
@@ -118,7 +118,7 @@
 
     - name: Include Android SDK role
       ansible.builtin.include_role:
-        name: android_sdk
+        name: cosmonautical.macible.android_sdk
         apply:
           tags:
             - android_sdk

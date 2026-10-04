@@ -1,7 +1,0 @@
----
-galaxy_info:
-  author: Violet Caulfield
-  description: Runs macOS system updates and ensures the Xcode Command Line Tools are installed on the host.
-  license: MIT
-  min_ansible_version: "2.15"
-dependencies: []
