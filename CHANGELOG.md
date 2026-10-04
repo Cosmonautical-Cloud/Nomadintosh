@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.0.1] - 2026-10-04
+
+### Fixed
+
+- Requires [`cosmonautical.macible` 0.2.1](https://github.com/Cosmonautical-Cloud/Macible/blob/main/CHANGELOG.md#021---2026-10-04), whose `xcode` role accepts the Xcode license before selecting Xcode. With 6.0.0, the first deploy to a `github_runners` host selected Xcode and then hung on the next task, and every later deploy to that host hung at fact gathering. On a host 6.0.0 already left stuck, run `sudo xcodebuild -license accept && sudo xcodebuild -runFirstLaunch` once before deploying.
+
 ## [6.0.0] - 2026-10-04
 
 ### Breaking

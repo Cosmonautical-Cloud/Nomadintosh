@@ -7,4 +7,4 @@ collections:
   # Generic macOS roles shared with workstations: Homebrew, Software Update,
   # container runtimes, NFS mounts, Android SDK, Xcode and so on.
   - name: cosmonautical.macible
-    version: "0.2.0"
+    version: "0.2.1"
