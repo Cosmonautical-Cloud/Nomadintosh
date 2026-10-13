@@ -1,0 +1,9 @@
+[{{ reverse_proxy_fail2ban_jail_name }}]
+enabled   = true
+filter    = {{ reverse_proxy_fail2ban_jail_name }}
+logpath   = {{ reverse_proxy_traefik_access_log }}
+maxretry  = {{ reverse_proxy_fail2ban_maxretry }}
+findtime  = {{ reverse_proxy_fail2ban_findtime }}
+bantime   = {{ reverse_proxy_fail2ban_bantime }}
+banaction = {{ reverse_proxy_fail2ban_banaction }}
+backend   = auto

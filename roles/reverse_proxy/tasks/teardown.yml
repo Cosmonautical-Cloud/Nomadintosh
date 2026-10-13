@@ -1,0 +1,103 @@
+---
+- name: Tear down fail2ban LaunchDaemon
+  become: true
+  block:
+    - name: Check whether fail2ban's LaunchDaemon is loaded
+      ansible.builtin.command:
+        argv:
+          - launchctl
+          - list
+          - "{{ reverse_proxy_fail2ban_launchdaemon_label }}"
+      register: reverse_proxy_fail2ban_launchctl
+      failed_when: false
+      changed_when: false
+      check_mode: false
+
+    - name: Unload fail2ban LaunchDaemon
+      when: reverse_proxy_fail2ban_launchctl.rc == 0
+      ansible.builtin.command:
+        argv:
+          - launchctl
+          - bootout
+          - "system/{{ reverse_proxy_fail2ban_launchdaemon_label }}"
+      changed_when: true
+
+    - name: Remove fail2ban LaunchDaemon plist
+      ansible.builtin.file:
+        path: "{{ launch_daemons_dir }}/{{ reverse_proxy_fail2ban_launchdaemon_label }}.plist"
+        state: absent
+
+- name: Tear down pf-enable-on-boot LaunchDaemon
+  become: true
+  block:
+    - name: Check whether pf-enable's LaunchDaemon is loaded
+      ansible.builtin.command:
+        argv:
+          - launchctl
+          - list
+          - "{{ reverse_proxy_pf_enable_launchdaemon_label }}"
+      register: reverse_proxy_pf_enable_launchctl
+      failed_when: false
+      changed_when: false
+      check_mode: false
+
+    - name: Unload pf-enable LaunchDaemon
+      when: reverse_proxy_pf_enable_launchctl.rc == 0
+      ansible.builtin.command:
+        argv:
+          - launchctl
+          - bootout
+          - "system/{{ reverse_proxy_pf_enable_launchdaemon_label }}"
+      changed_when: true
+
+    - name: Remove pf-enable LaunchDaemon plist
+      ansible.builtin.file:
+        path: "{{ launch_daemons_dir }}/{{ reverse_proxy_pf_enable_launchdaemon_label }}.plist"
+        state: absent
+
+    - name: Remove pf-enable script
+      ansible.builtin.file:
+        path: "{{ config_dir }}/{{ reverse_proxy_pf_enable_script_name }}"
+        state: absent
+
+# Only the wildcard anchor stub this role added is removed - pf itself is
+# left enabled/disabled as-is, since other things on the host may rely on
+# that state independently of fail2ban.
+- name: Remove fail2ban wildcard anchor from pf.conf
+  become: true
+  block:
+    - name: Remove fail2ban anchor block from pf.conf
+      ansible.builtin.blockinfile:
+        path: "{{ reverse_proxy_pf_conf_path }}"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK (nomadintosh: reverse_proxy fail2ban anchor)"
+        state: absent
+      register: reverse_proxy_pf_conf
+
+    - name: Reload pf ruleset
+      ansible.builtin.command:
+        argv:
+          - pfctl
+          - -f
+          - "{{ reverse_proxy_pf_conf_path }}"
+      when: reverse_proxy_pf_conf.changed
+      changed_when: true
+
+- name: Remove traefik-abuse fail2ban jail
+  ansible.builtin.file:
+    path: "{{ homebrew_dir }}/etc/fail2ban/jail.d/{{ reverse_proxy_fail2ban_jail_name }}.conf"
+    state: absent
+
+- name: Remove traefik-abuse fail2ban filter
+  ansible.builtin.file:
+    path: "{{ homebrew_dir }}/etc/fail2ban/filter.d/{{ reverse_proxy_fail2ban_jail_name }}.conf"
+    state: absent
+
+- name: Uninstall fail2ban via Homebrew
+  community.general.homebrew:
+    name: fail2ban
+    state: absent
+
+- name: Uninstall traefik via Homebrew
+  community.general.homebrew:
+    name: traefik
+    state: absent

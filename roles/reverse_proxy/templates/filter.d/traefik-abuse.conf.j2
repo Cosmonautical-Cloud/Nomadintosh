@@ -1,0 +1,3 @@
+[Definition]
+failregex = ^<HOST> - \S+ \[[^\]]+\] "\S+ \S+ \S+" (?:{{ reverse_proxy_fail2ban_status_codes | join('|') }}) 
+ignoreregex =

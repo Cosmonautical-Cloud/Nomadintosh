@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: Violet Caulfield
+  description: Host-side fail2ban + pf hardening for the Nomad-scheduled traefik reverse proxy job.
+  license: GPL-3.0-only
+  min_ansible_version: "2.15"
+dependencies: []

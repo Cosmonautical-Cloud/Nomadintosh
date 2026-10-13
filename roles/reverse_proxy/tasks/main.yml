@@ -1,0 +1,8 @@
+---
+- name: Include reverse proxy hardening setup tasks
+  ansible.builtin.include_tasks: setup.yml
+  when: reverse_proxy.enabled | default(false)
+
+- name: Include reverse proxy hardening teardown tasks
+  ansible.builtin.include_tasks: teardown.yml
+  when: not (reverse_proxy.enabled | default(false))

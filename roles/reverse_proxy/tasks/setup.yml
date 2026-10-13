@@ -1,0 +1,177 @@
+---
+- name: Install traefik via Homebrew
+  community.general.homebrew:
+    name: traefik
+    state: latest
+    update_homebrew: true
+
+- name: Install fail2ban via Homebrew
+  community.general.homebrew:
+    name: fail2ban
+    state: latest
+    update_homebrew: true
+
+- name: Create traefik access log directory
+  ansible.builtin.file:
+    path: "{{ reverse_proxy_traefik_access_log | dirname }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: staff
+    mode: '0755'
+
+- name: Deploy traefik-abuse fail2ban filter
+  ansible.builtin.template:
+    src: filter.d/traefik-abuse.conf.j2
+    dest: "{{ homebrew_dir }}/etc/fail2ban/filter.d/{{ reverse_proxy_fail2ban_jail_name }}.conf"
+    mode: '0644'
+  register: reverse_proxy_fail2ban_filter
+
+- name: Deploy traefik-abuse fail2ban jail
+  ansible.builtin.template:
+    src: jail.d/traefik-abuse.conf.j2
+    dest: "{{ homebrew_dir }}/etc/fail2ban/jail.d/{{ reverse_proxy_fail2ban_jail_name }}.conf"
+    mode: '0644'
+  register: reverse_proxy_fail2ban_jail
+
+- name: Configure pf for fail2ban
+  become: true
+  block:
+    - name: Check whether pf is already enabled
+      ansible.builtin.command:
+        argv:
+          - pfctl
+          - -s
+          - info
+      register: reverse_proxy_pf_status
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Enable pf
+      ansible.builtin.command:
+        argv:
+          - pfctl
+          - -e
+      when: "'Status: Enabled' not in reverse_proxy_pf_status.stdout"
+      changed_when: true
+
+    - name: Insert fail2ban wildcard anchor into pf.conf
+      ansible.builtin.blockinfile:
+        path: "{{ reverse_proxy_pf_conf_path }}"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK (nomadintosh: reverse_proxy fail2ban anchor)"
+        block: |
+          anchor "f2b/*"
+      register: reverse_proxy_pf_conf
+
+    - name: Reload pf ruleset
+      ansible.builtin.command:
+        argv:
+          - pfctl
+          - -f
+          - "{{ reverse_proxy_pf_conf_path }}"
+      when: reverse_proxy_pf_conf.changed
+      changed_when: true
+
+- name: Deploy pf-enable-on-boot LaunchDaemon
+  become: true
+  block:
+    - name: Deploy pf-enable script
+      ansible.builtin.template:
+        src: pf-enable.sh.j2
+        dest: "{{ config_dir }}/{{ reverse_proxy_pf_enable_script_name }}"
+        mode: '0755'
+        owner: root
+        group: wheel
+
+    - name: Create pf-enable LaunchDaemon
+      ansible.builtin.template:
+        src: LaunchDaemons/cloud.cosmonautical.pf-enable.plist.j2
+        dest: "{{ launch_daemons_dir }}/{{ reverse_proxy_pf_enable_launchdaemon_label }}.plist"
+        mode: '0644'
+        owner: root
+        group: wheel
+      register: reverse_proxy_pf_enable_launchdaemon
+
+    - name: Reload pf-enable LaunchDaemon
+      when: reverse_proxy_pf_enable_launchdaemon.changed
+      block:
+        - name: Unload existing pf-enable LaunchDaemon (if loaded)
+          ansible.builtin.command:
+            argv:
+              - launchctl
+              - bootout
+              - "system/{{ reverse_proxy_pf_enable_launchdaemon_label }}"
+          failed_when: false
+          changed_when: false
+
+        - name: Load pf-enable LaunchDaemon
+          ansible.builtin.command:
+            argv:
+              - launchctl
+              - bootstrap
+              - system
+              - "{{ launch_daemons_dir }}/{{ reverse_proxy_pf_enable_launchdaemon_label }}.plist"
+          changed_when: true
+
+- name: Deploy fail2ban LaunchDaemon
+  become: true
+  block:
+    - name: Create fail2ban LaunchDaemon
+      ansible.builtin.template:
+        src: LaunchDaemons/homebrew.mxcl.fail2ban.plist.j2
+        dest: "{{ launch_daemons_dir }}/{{ reverse_proxy_fail2ban_launchdaemon_label }}.plist"
+        mode: '0644'
+        owner: root
+        group: wheel
+      register: reverse_proxy_fail2ban_launchdaemon
+
+    - name: Check whether fail2ban's LaunchDaemon is loaded
+      ansible.builtin.command:
+        argv:
+          - launchctl
+          - list
+          - "{{ reverse_proxy_fail2ban_launchdaemon_label }}"
+      register: reverse_proxy_fail2ban_launchctl
+      failed_when: false
+      changed_when: false
+      check_mode: false
+
+    - name: Load fail2ban LaunchDaemon (if not already running)
+      when: reverse_proxy_fail2ban_launchctl.rc != 0
+      ansible.builtin.command:
+        argv:
+          - launchctl
+          - bootstrap
+          - system
+          - "{{ launch_daemons_dir }}/{{ reverse_proxy_fail2ban_launchdaemon_label }}.plist"
+      changed_when: true
+
+    - name: Reload fail2ban's LaunchDaemon (binary or plist changed)
+      when: reverse_proxy_fail2ban_launchctl.rc == 0 and reverse_proxy_fail2ban_launchdaemon.changed
+      block:
+        - name: Unload existing fail2ban LaunchDaemon
+          ansible.builtin.command:
+            argv:
+              - launchctl
+              - bootout
+              - "system/{{ reverse_proxy_fail2ban_launchdaemon_label }}"
+          changed_when: true
+
+        - name: Load fail2ban LaunchDaemon
+          ansible.builtin.command:
+            argv:
+              - launchctl
+              - bootstrap
+              - system
+              - "{{ launch_daemons_dir }}/{{ reverse_proxy_fail2ban_launchdaemon_label }}.plist"
+          changed_when: true
+
+    - name: Reload fail2ban config (filter/jail changed, daemon already running)
+      when: >-
+        reverse_proxy_fail2ban_launchctl.rc == 0 and not reverse_proxy_fail2ban_launchdaemon.changed
+        and (reverse_proxy_fail2ban_filter.changed or reverse_proxy_fail2ban_jail.changed)
+      ansible.builtin.command:
+        argv:
+          - "{{ homebrew_dir }}/bin/fail2ban-client"
+          - reload
+      changed_when: true
