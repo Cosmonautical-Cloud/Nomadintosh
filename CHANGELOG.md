@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.1.2] - 2026-10-13
+
+### Fixed
+
+- Requires [`cosmonautical.macible` 0.4.0](https://github.com/Cosmonautical-Cloud/Macible/blob/main/CHANGELOG.md#040---2026-10-13). Its `homebrew_packages` role now runs the new `homebrew_installer_sudoers` role first, granting NOPASSWD `sudo` for `/usr/sbin/installer` only. Without it, pkg-based casks (e.g. `temurin`) hang forever: Homebrew shells out to a bare `sudo ... /usr/sbin/installer` itself to install them, bypassing `become`/`--ask-become-pass` entirely.
+
 ## [6.1.1] - 2026-10-13
 
 ### Fixed
