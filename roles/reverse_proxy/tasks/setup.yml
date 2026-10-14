@@ -26,6 +26,12 @@
     mode: '0644'
   register: reverse_proxy_fail2ban_filter
 
+- name: Create fail2ban jail.d directory
+  ansible.builtin.file:
+    path: "{{ homebrew_dir }}/etc/fail2ban/jail.d"
+    state: directory
+    mode: '0755'
+
 - name: Deploy traefik-abuse fail2ban jail
   ansible.builtin.template:
     src: jail.d/traefik-abuse.conf.j2

@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.1.1] - 2026-10-13
+
+### Fixed
+
+- `reverse_proxy`: deploying the `traefik-abuse` fail2ban jail failed with `Destination directory /opt/homebrew/etc/fail2ban/jail.d does not exist`. Homebrew's fail2ban formula ships a default `filter.d` but not `jail.d`; the role now creates it before templating the jail file into it.
+
 ## [6.1.0] - 2026-10-13
 
 ### Added
