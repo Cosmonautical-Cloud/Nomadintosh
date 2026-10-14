@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.1.0] - 2026-10-13
+
+### Added
+
+- **New `reverse_proxy` role.** Installs traefik via Homebrew (the `traefik` Nomad job in `Cosmonautical/Nomad-Jobs` just execs this binary, it doesn't manage the package) and hardens it with a dedicated fail2ban jail (`traefik-abuse`) plus a `pf` wildcard anchor, since macOS has no `iptables` for fail2ban's usual ban action. Bans an IP for 8 403/404/418/999 responses within 10 minutes by default. Opt in per host with `reverse_proxy.enabled: true`; `false` tears the whole thing down (both packages, both LaunchDaemons, the `pf.conf` anchor). See `roles/reverse_proxy/README.md` — its `reverse_proxy_traefik_access_log`/`reverse_proxy_fail2ban_status_codes` defaults must be kept in sync by hand with that Nomad job's `accessLog` config, the two repos have no shared source of truth for either.
+
 ## [6.0.1] - 2026-10-04
 
 ### Fixed

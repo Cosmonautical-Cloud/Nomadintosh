@@ -149,6 +149,18 @@
       tags:
         - seaweedfs
 
+    - name: Include Reverse Proxy role
+      ansible.builtin.include_role:
+        name: reverse_proxy
+        apply:
+          tags:
+            - reverse_proxy
+      # reverse_proxy.enabled: false (not just absent) actively tears down an
+      # existing install - see roles/reverse_proxy/README.md.
+      when: reverse_proxy.enabled is defined
+      tags:
+        - reverse_proxy
+
     - name: Include Consul role
       ansible.builtin.include_role:
         name: consul

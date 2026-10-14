@@ -1,0 +1,35 @@
+---
+reverse_proxy_fail2ban_jail_name: "traefik-abuse"
+
+# Must match the traefik.nomad.hcl accessLog.filePath in the (separate)
+# Cosmonautical/Nomad-Jobs repo - this role only configures the host-side
+# watcher, it doesn't control what the Nomad job itself writes.
+reverse_proxy_traefik_access_log: "{{ homebrew_dir }}/var/log/traefik/access.log"
+
+# Kept in sync by hand with traefik.nomad.hcl's accessLog.filters.statusCodes
+# - the two repos have no shared source of truth for this list.
+reverse_proxy_fail2ban_status_codes:
+  - 403
+  - 404
+  - 418
+  - 999
+
+reverse_proxy_fail2ban_maxretry: 8
+reverse_proxy_fail2ban_findtime: 600
+reverse_proxy_fail2ban_bantime: 3600
+
+# allports blocks the banned IP entirely at the firewall rather than just
+# 80/443 - this host also fronts Minecraft/Valheim/Postgres, not just web
+# traffic (see traefik/README.md in Nomad-Jobs).
+reverse_proxy_fail2ban_banaction: "pf[actiontype=allports]"
+
+# Matches the label brew services would generate (`sudo brew services start
+# fail2ban`) - templated explicitly instead of shelling out to brew services
+# so Ansible stays in control of idempotency/reload.
+reverse_proxy_fail2ban_launchdaemon_label: "homebrew.mxcl.fail2ban"
+reverse_proxy_fail2ban_log_file: "fail2ban.log"
+
+reverse_proxy_pf_conf_path: "{{ config_dir }}/pf.conf"
+reverse_proxy_pf_enable_script_name: "pf-enable.sh"
+reverse_proxy_pf_enable_launchdaemon_label: "cloud.cosmonautical.pf-enable"
+reverse_proxy_pf_enable_log_file: "pf-enable.log"

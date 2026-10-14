@@ -1,0 +1,4 @@
+#!/bin/sh
+/sbin/pfctl -e 2>/dev/null
+/sbin/pfctl -f {{ reverse_proxy_pf_conf_path }}
+exit 0
