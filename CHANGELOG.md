@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.1.3] - 2026-11-17
+
+### Fixed
+
+- Requires [`cosmonautical.macible` 0.4.1](https://github.com/Cosmonautical-Cloud/Macible/blob/main/CHANGELOG.md#041---2026-11-17). On a fresh host, pkg-based casks such as `temurin` failed with `sudo: sorry, you are not allowed to preserve the environment`, because Macible's installer sudoers rule didn't allow the `sudo -E` that Homebrew uses. Macible also now trusts `hashicorp/tap`, which was tapped but never trusted, so Homebrew 7 warned about it on every install and `brew upgrade` skipped Consul and Nomad.
+
 ## [6.1.2] - 2026-10-13
 
 ### Fixed
