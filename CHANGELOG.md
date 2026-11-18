@@ -6,6 +6,7 @@ All notable changes to this project are documented here. Format based on [Keep a
 
 ### Fixed
 
+- The `consul` role now writes `/etc/resolver/consul` (`nameserver 127.0.0.1`, `port 8600`), so `*.consul` names resolve through the local agent. The existing hosts had this file from a manual setup and no role created it. On a new host (orion), container jobs couldn't resolve `postgres.service.consul`, so dispatcharr hung at startup waiting for PostgreSQL.
 - Requires [`cosmonautical.macible` 0.4.4](https://github.com/Cosmonautical-Cloud/Macible/blob/main/CHANGELOG.md#044---2026-11-17). Its `container` role now checks the apiserver in the GUI launchd domain. With container 1.7.1, `container system status` run over SSH looks in the user domain instead, so the check failed for an apiserver that was running fine for Nomad's container driver.
 
 ## [6.1.6] - 2026-11-17
