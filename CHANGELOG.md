@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.1.5] - 2026-11-17
+
+### Fixed
+
+- Requires [`cosmonautical.macible` 0.4.3](https://github.com/Cosmonautical-Cloud/Macible/blob/main/CHANGELOG.md#043---2026-11-17). Its `container` role now loads the Apple Container Launch Agent on every run, not just when `container` was installed or upgraded. A run that failed after installing `container` used to leave every later run failing with `apiserver is not running and not registered with launchd`.
+
 ## [6.1.4] - 2026-11-17
 
 ### Fixed
