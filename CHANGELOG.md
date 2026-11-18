@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.1.7] - 2026-11-17
+
+### Fixed
+
+- Requires [`cosmonautical.macible` 0.4.4](https://github.com/Cosmonautical-Cloud/Macible/blob/main/CHANGELOG.md#044---2026-11-17). Its `container` role now checks the apiserver in the GUI launchd domain. With container 1.7.1, `container system status` run over SSH looks in the user domain instead, so the check failed for an apiserver that was running fine for Nomad's container driver.
+
 ## [6.1.6] - 2026-11-17
 
 ### Fixed
