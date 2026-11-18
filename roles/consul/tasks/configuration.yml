@@ -7,3 +7,24 @@
     owner: root
     group: wheel
   register: consul_server_config
+
+# Sends *.consul lookups to the local agent's DNS port. Containers resolve
+# through the host, so without this a container job can't find
+# postgres.service.consul and friends. Doesn't need a Consul restart.
+- name: Create the macOS resolver directory
+  ansible.builtin.file:
+    path: /etc/resolver
+    state: directory
+    mode: '0755'
+    owner: root
+    group: wheel
+
+- name: Resolve the consul domain through the local Consul agent
+  ansible.builtin.copy:
+    dest: /etc/resolver/consul
+    content: |
+      nameserver 127.0.0.1
+      port 8600
+    mode: '0644'
+    owner: root
+    group: wheel
