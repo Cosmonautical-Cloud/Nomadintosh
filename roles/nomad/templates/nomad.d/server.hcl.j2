@@ -15,14 +15,17 @@
 {%     set ns.servers = ns.servers + [host] %}
 {%   endif %}
 {% endfor %}
-{% set retry_join_hosts = (ns.servers + (existing_cluster_servers | default([]))) | unique %}
+{# Never this host itself: joining yourself counts as a successful join, so
+   a new server whose real peers aren't reachable yet would stop retrying
+   and sit in a cluster of one. #}
+{% set retry_join_hosts = (ns.servers + (existing_cluster_servers | default([]))) | unique | reject('equalto', inventory_hostname) | list %}
 datacenter = "{{ datacenter }}"
 name = "{{ inventory_hostname }}"
 
 data_dir   = "{{ nomad_working_dir }}"
 
 bind_addr  = "{{ ansible_facts['default_ipv4']['address'] }}"
-retry_join = ["{{ retry_join_hosts | join('", "') }}"]
+retry_join = {{ retry_join_hosts | to_json }}
 
 # bind_addr above is pinned to the literal private IP (see consul.d/server.hcl.j2
 # for why: "0.0.0.0" produced a dual-stack listener vulnerable to macOS's stale

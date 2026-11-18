@@ -13,7 +13,10 @@
 {%   endif %}
 {% endfor %}
 {% set datacenter = consul_datacenter %}
-{% set retry_join_hosts = (ns.servers + (existing_cluster_servers | default([]))) | unique %}
+{# Never this host itself: joining yourself counts as a successful join, so
+   a new server whose real peers aren't reachable yet would stop retrying
+   and sit in a cluster of one. #}
+{% set retry_join_hosts = (ns.servers + (existing_cluster_servers | default([]))) | unique | reject('equalto', inventory_hostname) | list %}
 datacenter = "{{ datacenter }}"
 node_name  = "{{ inventory_hostname_short }}"
 data_dir   = "{{ consul_working_dir }}"
@@ -28,4 +31,4 @@ bind_addr      = "{{ ansible_facts['default_ipv4']['address'] }}"
 client_addr    = "0.0.0.0"
 advertise_addr = "{{ ansible_facts['default_ipv4']['address'] }}"
 
-retry_join = ["{{ retry_join_hosts | join('", "') }}"]
+retry_join = {{ retry_join_hosts | to_json }}
