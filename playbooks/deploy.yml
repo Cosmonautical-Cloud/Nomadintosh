@@ -116,6 +116,19 @@
       tags:
         - release_archives
 
+    # Runs for every host - the role itself is a no-op unless the host has a
+    # php_extensions list (or php_extensions__<suffix>), so which hosts get
+    # PHP extensions is purely an inventory decision. After homebrew_packages,
+    # which installs Homebrew itself.
+    - name: Include PHP extensions role
+      ansible.builtin.include_role:
+        name: cosmonautical.macible.php_extensions
+        apply:
+          tags:
+            - php_extensions
+      tags:
+        - php_extensions
+
     - name: Include Android SDK role
       ansible.builtin.include_role:
         name: cosmonautical.macible.android_sdk
