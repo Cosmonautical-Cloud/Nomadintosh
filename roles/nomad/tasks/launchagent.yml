@@ -1,4 +1,12 @@
 ---
+- name: Ensure the LaunchAgents directory exists
+  ansible.builtin.file:
+    path: "{{ launch_agents_dir }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user }}"
+    group: staff
+
 - name: Create Launch Agent for Nomad
   ansible.builtin.template:
     src: LaunchAgents/homebrew.mxcl.nomad.plist.j2
