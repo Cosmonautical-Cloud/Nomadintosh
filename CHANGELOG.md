@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.1.4] - 2026-11-17
+
+### Fixed
+
+- The `consul` and `nomad` roles create `launch_agents_dir` before writing their LaunchAgent plist. A fresh user account has no `~/Library/LaunchAgents` yet, so the template task failed with `Destination directory /Users/<user>/Library/LaunchAgents does not exist`.
+- Requires [`cosmonautical.macible` 0.4.2](https://github.com/Cosmonautical-Cloud/Macible/blob/main/CHANGELOG.md#042---2026-11-17), which fixes the same problem in its `container`, `podman` and `shell_env` roles.
+
 ## [6.1.3] - 2026-11-17
 
 ### Fixed
