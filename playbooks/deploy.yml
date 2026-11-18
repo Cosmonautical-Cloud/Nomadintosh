@@ -107,6 +107,19 @@
         - podman
         - container-runtime
 
+    # Runs for every host - a no-op unless the host has a directories list
+    # (or directories__<suffix>). Creates user-owned directories in
+    # root-owned places like /opt that Nomad jobs, running as the user,
+    # can't create themselves.
+    - name: Include directories role
+      ansible.builtin.include_role:
+        name: cosmonautical.macible.directories
+        apply:
+          tags:
+            - directories
+      tags:
+        - directories
+
     - name: Include release archives role
       ansible.builtin.include_role:
         name: cosmonautical.macible.release_archives
@@ -115,6 +128,19 @@
             - release_archives
       tags:
         - release_archives
+
+    # Runs for every host - the role itself is a no-op unless the host has a
+    # php_extensions list (or php_extensions__<suffix>), so which hosts get
+    # PHP extensions is purely an inventory decision. After homebrew_packages,
+    # which installs Homebrew itself.
+    - name: Include PHP extensions role
+      ansible.builtin.include_role:
+        name: cosmonautical.macible.php_extensions
+        apply:
+          tags:
+            - php_extensions
+      tags:
+        - php_extensions
 
     - name: Include Android SDK role
       ansible.builtin.include_role:

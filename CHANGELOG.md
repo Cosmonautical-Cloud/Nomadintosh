@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.2.0] - 2026-11-18
+
+### Added
+
+- `deploy.yml` runs [Macible](https://github.com/Cosmonautical-Cloud/Macible)'s new `php_extensions` role after Homebrew, for every host (it does nothing unless the host has a `php_extensions` or `php_extensions__<suffix>` list). It builds version-pinned pecl extensions for Homebrew's `php@8.4` and enables them in `php.ini`. These used to be installed by hand, so a new host (orion) had none of them, and Nextcloud jobs placed there failed with `Memcache OC\Memcache\Redis not available`.
+- `deploy.yml` also runs Macible's new `directories` role, before release archives, for every host (it does nothing without a `directories` or `directories__<suffix>` list). It creates user-owned directories in root-owned places such as `/opt`. The GitHub Actions runner's `/opt/github-actions` was made by hand on each runner host, so a new one (lovelace) couldn't start its runner.
+- Requires [`cosmonautical.macible` 0.5.0](https://github.com/Cosmonautical-Cloud/Macible/blob/main/CHANGELOG.md#050---2026-11-18).
+
 ## [6.1.7] - 2026-11-17
 
 ### Fixed
