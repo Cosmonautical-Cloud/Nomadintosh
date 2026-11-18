@@ -42,13 +42,18 @@
     # happens once, so a later config or binary change needs an explicit
     # restart to actually take effect (e.g. a driver plugin enabled/disabled
     # via container.enabled/podman.enabled/docker.enabled no longer applies
-    # until Nomad re-reads server.hcl). Restarts roll one host at a time,
+    # until Nomad re-reads server.hcl, and a new plugin binary isn't loaded
+    # until the agent relaunches its plugins). Restarts roll one host at a time,
     # waiting for each agent and the server cluster to report healthy before
     # moving on, so a run that changes every server never takes more than one
     # of them out of quorum.
     - name: Record whether Nomad needs a restart on this host
       ansible.builtin.set_fact:
-        nomad_restart_needed: "{{ nomad_launchctl.rc == 0 and (nomad_server_config.changed or nomad_package_updated | default(false)) }}"
+        nomad_restart_needed: >-
+          {{ nomad_launchctl.rc == 0 and (
+               nomad_server_config.changed
+               or nomad_package_updated | default(false)
+               or nomad_container_driver_install.changed | default(false)) }}
 
 - name: Roll Nomad restarts across hosts
   any_errors_fatal: true
