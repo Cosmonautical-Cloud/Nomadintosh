@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.3.0] - 2026-11-18
+
+### Fixed
+
+- 6.2.0 runs Macible's `directories` role but required Macible 0.5.0, which shipped without it, so `deploy.yml` failed with a role-not-found error. Requires [`cosmonautical.macible` 0.6.0](https://github.com/Cosmonautical-Cloud/Macible/blob/main/CHANGELOG.md#060---2026-11-18), which adds the role.
+
 ## [6.2.0] - 2026-11-18
 
 ### Added
