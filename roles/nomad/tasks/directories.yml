@@ -12,3 +12,15 @@
     group: "staff"
     state: directory
     mode: '0755'
+
+# Nomad's default alloc_mounts_dir is a sibling of data_dir, so under /opt,
+# which is root-owned on a fresh Mac. Nomad runs as the user and can't
+# create it there, so it exits on start with "failed creating alloc mounts
+# dir: mkdir /opt/alloc_mounts: permission denied".
+- name: Create Nomad alloc mounts directory (as user)
+  ansible.builtin.file:
+    path: "{{ nomad_working_dir | dirname }}/alloc_mounts"
+    owner: "{{ ansible_user }}"
+    group: "staff"
+    state: directory
+    mode: '0711'

@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.1.6] - 2026-11-17
+
+### Fixed
+
+- On a fresh host, Nomad exited on start with `failed creating alloc mounts dir: mkdir /opt/alloc_mounts: permission denied`, and launchd restarted it over and over. Nomad's default `alloc_mounts_dir` sits next to `data_dir` in root-owned `/opt`, and Nomad runs as the user. The `nomad` role now creates it, owned by the user. Existing hosts already had it, from an earlier setup.
+- Consul and Nomad `retry_join` no longer include the host itself. Joining yourself counts as a successful join, so a new server that couldn't reach its peers on the first try (for example, before macOS Local Network access was approved) stopped retrying and stayed in a cluster of one. `retry_join` is also rendered with `to_json` now, so an empty list renders as `[]` instead of `[""]`.
+
 ## [6.1.5] - 2026-11-17
 
 ### Fixed
