@@ -107,6 +107,19 @@
         - podman
         - container-runtime
 
+    # Runs for every host - a no-op unless the host has a directories list
+    # (or directories__<suffix>). Creates user-owned directories in
+    # root-owned places like /opt that Nomad jobs, running as the user,
+    # can't create themselves.
+    - name: Include directories role
+      ansible.builtin.include_role:
+        name: cosmonautical.macible.directories
+        apply:
+          tags:
+            - directories
+      tags:
+        - directories
+
     - name: Include release archives role
       ansible.builtin.include_role:
         name: cosmonautical.macible.release_archives
