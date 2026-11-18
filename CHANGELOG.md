@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.3.1] - 2026-11-18
+
+### Changed
+
+- Installs [`nomad-driver-container` 0.4.0-dev-6271786](https://github.com/anultravioletaurora/nomad-driver-container/releases/tag/v0.4.0-dev-6271786), up from 0.3.0-dev-29c1ae0. It exposes the container platform as node attributes (`driver.container.version`, `driver.container.path`, ...) and reports the real CLI version instead of `unknown`.
+
+### Fixed
+
+- Installing a new `nomad-driver-container` binary now restarts Nomad (one host at a time, like a config change). Nomad only loads plugins at agent start, so a driver version bump used to sit on disk while the old plugin kept running.
+
 ## [6.3.0] - 2026-11-18
 
 ### Fixed

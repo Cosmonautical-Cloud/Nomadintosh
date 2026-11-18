@@ -40,3 +40,4 @@
     owner: "{{ ansible_user }}"
     group: "staff"
   check_mode: false
+  register: nomad_container_driver_install
