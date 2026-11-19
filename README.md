@@ -23,8 +23,8 @@ A bonus of running bare-metal jobs is easy access to full hardware acceleration 
 
 Longer term, Nomad's multi-platform support means I can add Linux or Windows agents to the same cluster if needed — for example, running [Exact Audio Copy](https://www.exactaudiocopy.de/) on a Windows node for lossless CD ripping.
 
-![Three Mac Minis stacked in a rack — "cosmonautical", a 3-node cluster comprising 2× M4 Mac Mini and 1× M4 Pro Mac Mini](cluster.jpg)
-*"cosmonautical" — 2× M4 Mac Mini + 1× M4 Pro Mac Mini*
+![Six rack-mounted Mac minis labelled orion, taurus, cassiopeia, galileo, hopper and lovelace](cluster.jpg)
+*"cosmonautical" — servers orion, taurus and cassiopeia on top, with galileo, hopper and lovelace below*
 
 
 </details>
