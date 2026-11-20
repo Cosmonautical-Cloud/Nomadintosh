@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.3.2] - 2026-11-20
+
+### Changed
+
+- Installs [`nomad-driver-container` 0.5.0-dev-c76321a](https://github.com/anultravioletaurora/nomad-driver-container/releases/tag/v0.5.0-dev-c76321a), up from 0.4.0-dev-6271786. Container tasks now get their `alloc/`, `local/` and `secrets/` directories mounted at `/alloc`, `/local` and `/secrets`, and registry `auth` works.
+- The driver's plugin block now sets `volumes { enabled = true }`. Driver 0.5.0 turns host bind mounts off by default and fails any task that uses `volumes` while they're off. Without this setting, every container job with `volumes` (deemix, dispatcharr, romm, seerr) would stop starting.
+
 ## [6.3.1] - 2026-11-18
 
 ### Changed

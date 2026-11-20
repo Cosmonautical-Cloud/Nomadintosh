@@ -22,7 +22,7 @@ nomad_plugin_dir: "{{ nomad_working_dir }}/plugins"
 nomad_podman_driver_version: "0.6.4"
 nomad_podman_driver_name: "nomad-driver-podman"
 
-nomad_container_driver_version: "0.4.0-dev-6271786"
+nomad_container_driver_version: "0.5.0-dev-c76321a"
 nomad_container_driver_name: "nomad-driver-container"
 nomad_container_driver_repo: "https://github.com/anultravioletaurora/nomad-driver-container"
 nomad_container_driver_archive: "nomad-driver-container-darwin-arm64.tar.gz"
