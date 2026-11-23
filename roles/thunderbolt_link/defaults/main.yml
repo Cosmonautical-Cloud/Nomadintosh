@@ -1,0 +1,21 @@
+---
+# Per-host point-to-point link over a Thunderbolt cable, e.g. for MLX
+# distributed inference (RDMA over Thunderbolt 5). Undefined by default, so
+# the role does nothing unless the inventory sets it:
+#
+# thunderbolt_link:
+#   interface: en2          # the Thunderbolt port the cable is in
+#   address: 172.31.250.1   # this end
+#   peer: 172.31.250.2      # the other end
+thunderbolt_link_netmask: "255.255.255.252"
+
+thunderbolt_link_script_name: "thunderbolt-link.sh"
+
+thunderbolt_link_launchdaemon_label: "cloud.cosmonautical.thunderbolt-link"
+
+thunderbolt_link_launchdaemon_log_file: "thunderbolt-link.log"
+
+# How often (seconds) the LaunchDaemon re-applies the address. The interface
+# has no address until the cable is up, and macOS can re-add it to the
+# Thunderbolt Bridge, so applying it once at boot isn't enough.
+thunderbolt_link_interval: 60

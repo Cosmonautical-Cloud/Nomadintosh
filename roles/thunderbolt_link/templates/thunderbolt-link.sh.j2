@@ -1,0 +1,15 @@
+#!/bin/sh
+# Managed by Ansible (nomadintosh: thunderbolt_link role) - do not edit by hand.
+iface={{ thunderbolt_link.interface }}
+addr={{ thunderbolt_link.address }}
+peer={{ thunderbolt_link.peer }}
+
+if /sbin/ifconfig bridge0 2>/dev/null | grep -q "member: $iface "; then
+  /sbin/ifconfig bridge0 deletem "$iface"
+fi
+if ! /sbin/ifconfig "$iface" | grep -q "inet $addr "; then
+  /sbin/ifconfig "$iface" inet "$addr" netmask {{ thunderbolt_link_netmask }}
+fi
+/sbin/route -n change -host "$peer" -interface "$iface" >/dev/null 2>&1 \
+  || /sbin/route -n add -host "$peer" -interface "$iface" >/dev/null 2>&1
+exit 0

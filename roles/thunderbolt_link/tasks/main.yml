@@ -1,0 +1,90 @@
+---
+- name: Check thunderbolt_link
+  ansible.builtin.assert:
+    that:
+      - thunderbolt_link.interface is defined
+      - thunderbolt_link.address is defined
+      - thunderbolt_link.peer is defined
+    fail_msg: "thunderbolt_link needs interface, address and peer"
+
+# The bridge would otherwise own the Thunderbolt ports, and RDMA needs the
+# address on the port itself.
+- name: Check whether the Thunderbolt Bridge service is enabled
+  ansible.builtin.command:
+    argv:
+      - networksetup
+      - -getnetworkserviceenabled
+      - Thunderbolt Bridge
+  register: thunderbolt_bridge_enabled
+  changed_when: false
+  failed_when: false
+
+- name: Disable the Thunderbolt Bridge service
+  become: true
+  when: thunderbolt_bridge_enabled.stdout | trim == "Enabled"
+  ansible.builtin.command:
+    argv:
+      - networksetup
+      - -setnetworkserviceenabled
+      - Thunderbolt Bridge
+      - "off"
+  changed_when: true
+
+- name: Deploy Thunderbolt link script
+  become: true
+  ansible.builtin.template:
+    src: thunderbolt-link.sh.j2
+    dest: "{{ config_dir }}/{{ thunderbolt_link_script_name }}"
+    mode: '0755'
+    owner: root
+    group: wheel
+  register: thunderbolt_link_script
+
+- name: Create LaunchDaemon for the Thunderbolt link
+  become: true
+  ansible.builtin.template:
+    src: LaunchDaemons/cloud.cosmonautical.thunderbolt-link.plist.j2
+    dest: "{{ launch_daemons_dir }}/{{ thunderbolt_link_launchdaemon_label }}.plist"
+    mode: '0644'
+    owner: root
+    group: wheel
+  register: thunderbolt_link_launchdaemon
+
+- name: Reload Thunderbolt link LaunchDaemon
+  become: true
+  when: thunderbolt_link_script.changed or thunderbolt_link_launchdaemon.changed
+  block:
+    - name: Unload existing Thunderbolt link LaunchDaemon (if loaded)
+      ansible.builtin.command:
+        argv:
+          - launchctl
+          - bootout
+          - "system/{{ thunderbolt_link_launchdaemon_label }}"
+      failed_when: false
+      changed_when: false
+
+    - name: Load Thunderbolt link LaunchDaemon
+      ansible.builtin.command:
+        argv:
+          - launchctl
+          - bootstrap
+          - system
+          - "{{ launch_daemons_dir }}/{{ thunderbolt_link_launchdaemon_label }}.plist"
+      changed_when: true
+
+# RDMA can only be turned on from Recovery (`rdma_ctl enable`), so this only
+# reports it.
+- name: List RDMA devices
+  ansible.builtin.command:
+    argv:
+      - ibv_devices
+  register: thunderbolt_link_rdma
+  changed_when: false
+  failed_when: false
+
+- name: Warn if RDMA is off for the link's interface
+  when: ("rdma_" ~ thunderbolt_link.interface) not in thunderbolt_link_rdma.stdout
+  ansible.builtin.debug:
+    msg: >-
+      No rdma_{{ thunderbolt_link.interface }} device. RDMA is off: boot into
+      Recovery, run `rdma_ctl enable` in Terminal and reboot.

@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: Violet Caulfield
+  description: Gives a Thunderbolt port a static point-to-point address outside the Thunderbolt Bridge, for MLX distributed inference over RDMA.
+  license: GPL-3.0-only
+  min_ansible_version: "2.15"
+dependencies: []
