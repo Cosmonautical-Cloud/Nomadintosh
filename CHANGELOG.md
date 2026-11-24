@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
-## [Unreleased]
+## [6.4.0] - 2026-11-23
 
 ### Added
 
