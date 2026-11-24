@@ -47,3 +47,10 @@ your-datacenter:
 github_runners:
   hosts:
     client2.example.com:
+
+# Magic group: its hosts also get Silicon Labs' CP210x USB serial driver, for
+# Zigbee/Z-Wave coordinators. Approve it on each Mac's screen after the first
+# run. See README.md#magic-groups.
+iot:
+  hosts:
+    client3.example.com:

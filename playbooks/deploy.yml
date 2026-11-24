@@ -71,6 +71,17 @@
       tags:
         - thunderbolt_link
 
+    # Magic group: membership alone turns this on - see README.md#magic-groups.
+    - name: Install the CP210x USB serial driver
+      ansible.builtin.include_role:
+        name: cp210x_driver
+        apply:
+          tags:
+            - cp210x_driver
+      when: "'iot' in group_names"
+      tags:
+        - cp210x_driver
+
     - name: Mount NFS shares
       ansible.builtin.include_role:
         name: cosmonautical.macible.nfs_mounts

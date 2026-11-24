@@ -1,0 +1,15 @@
+---
+# Silicon Labs' CP210x VCP driver, shipped in files/ because silabs.com
+# returns 403 to scripted downloads (Homebrew's silicon-labs-vcp-driver cask
+# fails the same way). Bump all three together when replacing the DMG.
+cp210x_driver_version: "6.0.3"
+cp210x_driver_dmg: "SiLabsUSBDriverDisk.dmg"
+cp210x_driver_dmg_sha256: "0b1d685730a358e73946098ff1f901847d9ce5f0be2d2c878624a65c47bf2eda"
+
+# The DriverKit extension's host app. It has to live in /Applications, and
+# launching it is what asks macOS to activate the extension.
+cp210x_driver_app: "/Applications/CP210xVCPDriver.app"
+cp210x_driver_extension_id: "com.silabs.cp210x"
+
+# Where the DMG is copied on the host before it's mounted.
+cp210x_driver_staging_dir: "{{ ansible_facts['user_dir'] }}/Library/Caches/cloud.cosmonautical.cp210x_driver"
