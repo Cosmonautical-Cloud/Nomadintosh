@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.5.1] - 2026-11-24
+
+### Fixed
+
+- Consul failed to install on a fresh Intel Mac with `The following directories are not writable by your user: /usr/local/var/log`. The `sysctl` LaunchDaemon logs into `log_dir`, and since `/usr/local/var/log` doesn't exist before Homebrew does, launchd created it as `root:wheel` `0744`. The deploy now creates `log_dir` (and its parent) owned by `ansible_user` before any role loads a LaunchDaemon, which also repairs a host where launchd already created it.
+
 ## [6.5.0] - 2026-11-24
 
 ### Added
