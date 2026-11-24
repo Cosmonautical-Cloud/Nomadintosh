@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- `homebrew_dir` now follows the host's CPU: `/opt/homebrew` on Apple silicon, `/usr/local` on Intel. That's where `geerlingguy.mac.homebrew` installs Homebrew on each, so an Intel Mac no longer needs a `homebrew_dir` host var to get working Consul and Nomad LaunchAgents. A host var still overrides it.
+- `php_extensions_homebrew_prefix` (Macible's `php_extensions`) follows `homebrew_dir` too.
+
+### Fixed
+
+- Building the Podman driver used a hardcoded `/opt/homebrew/bin/go` instead of `homebrew_dir`.
+- The deploy now fails up front if `container.enabled` is set on an Intel Mac. Apple's container runtime and the `nomad-driver-container` build are Apple silicon only.
+
 ## [6.4.0] - 2026-11-23
 
 ### Added

@@ -30,7 +30,7 @@ All paths are driven by variables defined in [`playbooks/group_vars/all.yml`](..
 |---|---|---|
 | `config_dir` | `/etc` | Root for `/etc/nomad.d` |
 | `working_dir` | `/opt` | Root for `/opt/nomad` (data dir, plugins dir, jobs dir) |
-| `homebrew_dir` | `/opt/homebrew` | Used to locate the `nomad` binary |
+| `homebrew_dir` | `/opt/homebrew` on Apple silicon, `/usr/local` on Intel | Used to locate the `nomad` binary |
 | `log_dir` | `{{ homebrew_dir }}/var/log` | Directory the LaunchAgent writes `nomad_launchagent_log_file` into |
 | `launch_agents_dir` | `~/Library/LaunchAgents` | Where the LaunchAgent plist is written |
 
