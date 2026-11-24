@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `thunderbolt_link` role: gives one Thunderbolt port a static point-to-point address outside the Thunderbolt Bridge, re-applied every minute by a LaunchDaemon, for MLX distributed inference over RDMA between two Macs. It does nothing unless a host sets `thunderbolt_link: {interface, address, peer}`. It warns when `ibv_devices` has no `rdma_<interface>`, since RDMA can only be enabled from Recovery (`rdma_ctl enable`).
+
 ## [6.3.2] - 2026-11-20
 
 ### Changed

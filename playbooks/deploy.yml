@@ -46,6 +46,16 @@
       tags:
         - sysctl
 
+    - name: Configure the Thunderbolt link
+      ansible.builtin.include_role:
+        name: thunderbolt_link
+        apply:
+          tags:
+            - thunderbolt_link
+      when: thunderbolt_link is defined
+      tags:
+        - thunderbolt_link
+
     - name: Mount NFS shares
       ansible.builtin.include_role:
         name: cosmonautical.macible.nfs_mounts
