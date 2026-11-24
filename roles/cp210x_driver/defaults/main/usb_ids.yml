@@ -1,6 +1,9 @@
 ---
-# Every USB vendor:product ID (hex) that the CP210x 6.0.3 driver extension
-# matches, generated from the dext's IOKitPersonalities. Regenerate it when
+# USB vendor:product IDs (hex) that need the CP210x 6.0.3 driver extension:
+# every ID its IOKitPersonalities match, minus the ones macOS's own
+# AppleUSBSLCOM driver already handles (10c4:ea60 and 10c4:ea70 on macOS 15
+# and 26). Installing the driver for those would take the stick over from
+# Apple's driver and rename its /dev/cu.* device. Regenerate it when
 # replacing the DMG - see README.md.
 cp210x_driver_usb_ids:
   - "04bf:1301"
@@ -92,10 +95,8 @@ cp210x_driver_usb_ids:
   - "10c4:8da7"
   - "10c4:8ddc"
   - "10c4:8e0f"
-  - "10c4:ea60"
   - "10c4:ea61"
   - "10c4:ea63"
-  - "10c4:ea70"
   - "10c4:ea71"
   - "10c4:ea7a"
   - "10c4:ea7b"

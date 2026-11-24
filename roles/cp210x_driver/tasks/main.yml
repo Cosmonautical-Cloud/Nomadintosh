@@ -1,12 +1,19 @@
 ---
-# Only hosts that need the driver get it: one with a supported stick plugged
-# in that has no serial port yet. A host that already has the app keeps it
-# up to date and active, even with the stick unplugged.
-- name: Detect USB devices the CP210x driver supports
-  ansible.builtin.script:
-    cmd: "detect_devices.py {{ cp210x_driver_usb_ids | join(',') }}"
-    executable: /usr/bin/python3
-  register: cp210x_driver_detect
+# Only hosts that need the driver get it: one with a stick plugged in that
+# only this driver handles (cp210x_driver_usb_ids). A host that already has
+# the app keeps it up to date and active, even with the stick unplugged.
+- name: List USB devices
+  ansible.builtin.command:
+    argv:
+      - /usr/sbin/ioreg
+      - -r
+      - -c
+      - IOUSBHostDevice
+      - -d
+      - "1"
+      - -l
+      - -w0
+  register: cp210x_driver_ioreg
   changed_when: false
   check_mode: false
 
@@ -22,22 +29,34 @@
   failed_when: false
   check_mode: false
 
+# ioreg prints one "+-o <name>" block per device, with idVendor and
+# idProduct in decimal.
 - name: Decide whether this host needs the CP210x driver
   ansible.builtin.set_fact:
-    cp210x_driver_devices_found: "{{ cp210x_driver_detect.stdout | from_json }}"
-    cp210x_driver_needed: >-
-      {{ (cp210x_driver_detect.stdout | from_json | rejectattr('serial') | list | length > 0)
-         or cp210x_driver_installed.rc == 0 }}
+    cp210x_driver_devices_found: >-
+      {%- set found = [] -%}
+      {%- for device in cp210x_driver_ioreg.stdout.split('+-o ')[1:] -%}
+        {%- set vendor = device | regex_findall('"idVendor" = ([0-9]+)') -%}
+        {%- set product = device | regex_findall('"idProduct" = ([0-9]+)') -%}
+        {%- if vendor and product -%}
+          {%- set usb_id = '%04x:%04x' | format(vendor[0] | int, product[0] | int) -%}
+          {%- if usb_id in cp210x_driver_usb_ids -%}
+            {%- set _ = found.append(usb_id ~ ' (' ~ device.split('@')[0].split('  <')[0] ~ ')') -%}
+          {%- endif -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ found }}
+    cp210x_driver_needed: "{{ cp210x_driver_installed.rc == 0 }}"
+
+- name: Note a device that needs the CP210x driver
+  when: cp210x_driver_devices_found | length > 0
+  ansible.builtin.set_fact:
+    cp210x_driver_needed: true
 
 - name: Skip the CP210x driver
   when: not cp210x_driver_needed
   ansible.builtin.debug:
-    msg: >-
-      Not installing the CP210x driver:
-      {{ 'no supported USB device is plugged in'
-         if cp210x_driver_devices_found | length == 0
-         else (cp210x_driver_devices_found | map(attribute='name') | join(', '))
-              ~ ' already has a serial port' }}.
+    msg: Not installing the CP210x driver - no USB device that needs it is plugged in.
 
 - name: Install and activate the CP210x driver
   when: cp210x_driver_needed

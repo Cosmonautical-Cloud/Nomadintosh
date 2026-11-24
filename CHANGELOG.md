@@ -6,7 +6,7 @@ All notable changes to this project are documented here. Format based on [Keep a
 
 ### Added
 
-- `cp210x_driver` role, run for hosts in the new `iot` magic group. It installs Silicon Labs' CP210x VCP DriverKit extension (6.0.3), which USB Zigbee/Z-Wave coordinators such as the Nortek HUSBZB-1 need for a serial device, and launches its host app to request activation. It only does this where the driver is needed: a supported stick (any of the 210 USB IDs the driver matches) is plugged in and macOS hasn't given it a serial port. A host that already has the driver keeps it up to date. The DMG ships in the role because silabs.com refuses scripted downloads. macOS still needs the driver approved once on the Mac's own screen, and the deploy warns until it is.
+- `cp210x_driver` role, run for hosts in the new `iot` magic group. It installs Silicon Labs' CP210x VCP DriverKit extension (6.0.3), which USB Zigbee/Z-Wave coordinators such as the Nortek HUSBZB-1 need for a serial device, and launches its host app to request activation. It only does this where the driver is needed: a stick is plugged in whose USB ID the driver matches and macOS's own driver doesn't (208 IDs, matched against `ioreg` in Jinja). A host that already has the driver keeps it up to date. The DMG ships in the role because silabs.com refuses scripted downloads. macOS still needs the driver approved once on the Mac's own screen, and the deploy warns until it is.
 
 ### Changed
 
