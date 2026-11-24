@@ -1,0 +1,189 @@
+---
+- name: Read the installed CP210x driver app's version
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/defaults
+      - read
+      - "{{ cp210x_driver_app }}/Contents/Info"
+      - CFBundleShortVersionString
+  register: cp210x_driver_installed
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Install the CP210x driver app
+  when: cp210x_driver_installed.stdout != cp210x_driver_version
+  block:
+    - name: Create the CP210x driver staging directory
+      ansible.builtin.file:
+        path: "{{ cp210x_driver_staging_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy the CP210x driver DMG
+      ansible.builtin.copy:
+        src: "{{ cp210x_driver_dmg }}"
+        dest: "{{ cp210x_driver_staging_dir }}/{{ cp210x_driver_dmg }}"
+        mode: '0644'
+
+    - name: Checksum the CP210x driver DMG
+      ansible.builtin.stat:
+        path: "{{ cp210x_driver_staging_dir }}/{{ cp210x_driver_dmg }}"
+        checksum_algorithm: sha256
+      register: cp210x_driver_dmg_stat
+
+    - name: Assert the CP210x driver DMG is the pinned one
+      ansible.builtin.assert:
+        that: cp210x_driver_dmg_stat.stat.checksum == cp210x_driver_dmg_sha256
+        fail_msg: >-
+          {{ cp210x_driver_dmg }} has sha256
+          {{ cp210x_driver_dmg_stat.stat.checksum }}, expected
+          {{ cp210x_driver_dmg_sha256 }}.
+        quiet: true
+      when: not ansible_check_mode
+
+    - name: Create a mount point for the CP210x driver DMG
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: cp210x
+      register: cp210x_driver_mount
+
+    # tempfile doesn't create anything in check mode, so there's nothing to
+    # mount onto.
+    - name: Copy the driver app out of the DMG
+      when: not ansible_check_mode
+      block:
+        - name: Mount the CP210x driver DMG
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/hdiutil
+              - attach
+              - -nobrowse
+              - -readonly
+              - -noautoopen
+              - -mountpoint
+              - "{{ cp210x_driver_mount.path }}"
+              - "{{ cp210x_driver_staging_dir }}/{{ cp210x_driver_dmg }}"
+          changed_when: false
+
+        # The DMG's installer app only copies this nested app into
+        # /Applications (through a privileged helper) and launches it, so do
+        # that directly instead of driving its GUI.
+        - name: Remove the old CP210x driver app
+          become: true
+          ansible.builtin.file:
+            path: "{{ cp210x_driver_app }}"
+            state: absent
+
+        - name: Copy the CP210x driver app into /Applications
+          become: true
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/ditto
+              - "{{ cp210x_driver_mount.path }}/Install CP210x VCP Driver.app/Contents/Resources/CP210xVCPDriver.app"
+              - "{{ cp210x_driver_app }}"
+          changed_when: true
+      always:
+        - name: Unmount the CP210x driver DMG
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/hdiutil
+              - detach
+              - "{{ cp210x_driver_mount.path }}"
+          changed_when: false
+          failed_when: false
+
+        - name: Remove the CP210x driver DMG mount point
+          ansible.builtin.file:
+            path: "{{ cp210x_driver_mount.path }}"
+            state: absent
+
+- name: Read the CP210x driver extension's state
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/systemextensionsctl
+      - list
+  register: cp210x_driver_extensions
+  changed_when: false
+  check_mode: false
+
+- name: Find the CP210x driver extension's line
+  ansible.builtin.set_fact:
+    cp210x_driver_extension_line: >-
+      {{ cp210x_driver_extensions.stdout_lines
+         | select('search', cp210x_driver_extension_id ~ ' \(' ~ cp210x_driver_version ~ '/')
+         | first | default('') }}
+
+# The app only asks for activation when it's launched with an `install`
+# argument, which is how the DMG's installer starts it. A plain launch just
+# idles. It has to run in the logged-in user's GUI session, where macOS can
+# show the approval. -n starts a fresh instance, since `open` drops the
+# arguments when the app is already running.
+- name: Launch the CP210x driver app to request activation
+  when:
+    - "'[activated enabled]' not in cp210x_driver_extension_line"
+    - not ansible_check_mode
+  block:
+    - name: Launch the CP210x driver app
+      become: true
+      ansible.builtin.command:
+        argv:
+          - /bin/launchctl
+          - asuser
+          - "{{ ansible_facts['user_uid'] }}"
+          - /usr/bin/open
+          - -g
+          - -n
+          - "{{ cp210x_driver_app }}"
+          - --args
+          - install
+      changed_when: true
+      failed_when: false
+
+    - name: Wait for the CP210x driver extension to register
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/systemextensionsctl
+          - list
+      register: cp210x_driver_extensions
+      changed_when: false
+      until: cp210x_driver_extension_id ~ ' (' ~ cp210x_driver_version ~ '/' in cp210x_driver_extensions.stdout
+      retries: 10
+      delay: 3
+      failed_when: false
+
+    - name: Find the CP210x driver extension's line after launch
+      ansible.builtin.set_fact:
+        cp210x_driver_extension_line: >-
+          {{ cp210x_driver_extensions.stdout_lines
+             | select('search', cp210x_driver_extension_id ~ ' \(' ~ cp210x_driver_version ~ '/')
+             | first | default('') }}
+
+# Without MDM, macOS only activates a third-party driver extension after
+# someone approves it on the Mac's own screen, so this only reports it.
+- name: Warn if the CP210x driver extension still needs approval
+  when: "'[activated enabled]' not in cp210x_driver_extension_line"
+  ansible.builtin.debug:
+    msg: >-
+      The CP210x driver extension isn't active
+      ({{ cp210x_driver_extension_line | regex_search('\[.*\]') | default('not registered', true) }}).
+      On {{ inventory_hostname }}'s screen, logged in as {{ ansible_user }},
+      approve CP210xVCPDriver in System Settings > General > Login Items &
+      Extensions > Driver Extensions (Privacy & Security > Allow on macOS 14
+      and earlier). If nothing is waiting there, run
+      `open -n {{ cp210x_driver_app }} --args install` on it and re-run
+      with --tags cp210x_driver.
+
+- name: List serial devices
+  ansible.builtin.find:
+    paths: /dev
+    patterns: "cu.*"
+    file_type: any
+    excludes:
+      - cu.Bluetooth-Incoming-Port
+      - cu.debug-console
+  register: cp210x_driver_devices
+
+- name: Show serial devices
+  ansible.builtin.debug:
+    msg: "Serial devices: {{ cp210x_driver_devices.files | map(attribute='path') | sort | join(', ') | default('none', true) }}"

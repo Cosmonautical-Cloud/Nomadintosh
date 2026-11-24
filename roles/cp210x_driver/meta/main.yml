@@ -1,0 +1,7 @@
+---
+galaxy_info:
+  author: Violet Caulfield
+  description: Installs Silicon Labs' CP210x VCP DriverKit extension, which USB Zigbee/Z-Wave coordinators such as the Nortek HUSBZB-1 need for a serial device.
+  license: GPL-3.0-only
+  min_ansible_version: "2.15"
+dependencies: []

@@ -4,6 +4,10 @@ All notable changes to this project are documented here. Format based on [Keep a
 
 ## [Unreleased]
 
+### Added
+
+- `cp210x_driver` role, run for hosts in the new `iot` magic group. It installs Silicon Labs' CP210x VCP DriverKit extension (6.0.3), which USB Zigbee/Z-Wave coordinators such as the Nortek HUSBZB-1 need for a serial device, and launches its host app to request activation. The DMG ships in the role because silabs.com refuses scripted downloads. macOS still needs the driver approved once on the Mac's own screen, and the deploy warns until it is.
+
 ### Changed
 
 - `homebrew_dir` now follows the host's CPU: `/opt/homebrew` on Apple silicon, `/usr/local` on Intel. That's where `geerlingguy.mac.homebrew` installs Homebrew on each, so an Intel Mac no longer needs a `homebrew_dir` host var to get working Consul and Nomad LaunchAgents. A host var still overrides it.
