@@ -28,6 +28,21 @@
       tags:
         - always
 
+    # Apple's container runtime (and the nomad-driver-container build this
+    # installs) is Apple silicon only. Fail before changing anything rather
+    # than halfway through the container role.
+    - name: Assert Apple container is only enabled on Apple silicon
+      ansible.builtin.assert:
+        that: ansible_facts['machine'] == 'arm64'
+        fail_msg: >-
+          {{ inventory_hostname }} is {{ ansible_facts['machine'] }}, but has
+          container.enabled set. Apple's container runtime only runs on Apple
+          silicon - remove container from this host's vars.
+        quiet: true
+      when: container.enabled | default(false)
+      tags:
+        - always
+
     - name: Perform Software Update
       ansible.builtin.include_role:
         name: cosmonautical.macible.software_update

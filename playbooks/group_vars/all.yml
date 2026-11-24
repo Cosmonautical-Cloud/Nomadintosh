@@ -4,7 +4,15 @@
 # group_vars/host_vars relative to both the inventory source AND the
 # playbook directory) - unlike inventory/group_vars, this survives Semaphore
 # supplying its own inventory instead of inventory/hosts.yml.
-homebrew_dir: /opt/homebrew
+# Homebrew's own default prefix for the host's CPU: /opt/homebrew on Apple
+# silicon, /usr/local on Intel. geerlingguy.mac.homebrew (run by
+# cosmonautical.macible.homebrew_packages) picks its install location the
+# same way, so the two always agree. Override per host only if Homebrew was
+# installed somewhere non-standard.
+homebrew_dir: "{{ (ansible_facts['machine'] == 'arm64') | ternary('/opt/homebrew', '/usr/local') }}"
+
+# Macible's php_extensions role has its own prefix variable.
+php_extensions_homebrew_prefix: "{{ homebrew_dir }}"
 
 # Every host gets hashicorp/tap - Consul and Nomad come from it.
 # (cosmonautical.macible.homebrew_packages defaults this to [].)

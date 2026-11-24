@@ -24,7 +24,7 @@ All paths are driven by variables defined in [`playbooks/group_vars/all.yml`](..
 |---|---|---|
 | `config_dir` | `/etc` | Root for `/etc/consul.d` |
 | `working_dir` | `/opt` | Root for `/opt/consul` (data dir) |
-| `homebrew_dir` | `/opt/homebrew` | Used to locate the `consul` binary |
+| `homebrew_dir` | `/opt/homebrew` on Apple silicon, `/usr/local` on Intel | Used to locate the `consul` binary |
 | `log_dir` | `{{ homebrew_dir }}/var/log` | Directory the LaunchAgent writes `consul_launchagent_log_file` into |
 | `launch_agents_dir` | `~/Library/LaunchAgents` | Where the LaunchAgent plist is written |
 
