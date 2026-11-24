@@ -43,6 +43,27 @@
       tags:
         - always
 
+    # Root LaunchDaemons (sysctl, thunderbolt_link, Macible's nfs_mounts
+    # watchdog, ...) log into log_dir. If it doesn't exist yet, launchd
+    # creates it as root:wheel 0744, and Homebrew then refuses to install
+    # anything ("The following directories are not writable by your user").
+    # On Intel that happens on every fresh host, since /usr/local/var/log
+    # isn't there before Homebrew is. Create it user-owned first, which also
+    # repairs a host where launchd already got there.
+    - name: Ensure the log directory is owned by the Homebrew user
+      become: true
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: staff
+        mode: '0755'
+      loop:
+        - "{{ log_dir | dirname }}"
+        - "{{ log_dir }}"
+      tags:
+        - always
+
     - name: Perform Software Update
       ansible.builtin.include_role:
         name: cosmonautical.macible.software_update
