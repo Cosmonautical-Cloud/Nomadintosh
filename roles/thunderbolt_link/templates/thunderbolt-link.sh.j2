@@ -10,6 +10,15 @@ fi
 if ! /sbin/ifconfig "$iface" | grep -q "inet $addr "; then
   /sbin/ifconfig "$iface" inet "$addr" netmask {{ thunderbolt_link_netmask }}
 fi
-/sbin/route -n change -host "$peer" -interface "$iface" >/dev/null 2>&1 \
-  || /sbin/route -n add -host "$peer" -interface "$iface" >/dev/null 2>&1
+
+# The /30 above already routes to the peer through ARP. Before 6.5.2 this also
+# ran `route change -host $peer -interface $iface`, which overwrote the peer's
+# ARP entry with this port's own MAC, so traffic to the peer looped back here.
+# Drop any such entry so ARP resolves the peer's real MAC again.
+own_mac=$(/sbin/ifconfig "$iface" ether | awk '/ether/ { print $2 }')
+peer_mac=$(/usr/sbin/arp -n -i "$iface" "$peer" 2>/dev/null | awk '{ print $4 }')
+if [ -n "$own_mac" ] && [ "$peer_mac" = "$own_mac" ]; then
+  /usr/sbin/arp -d "$peer" ifscope "$iface" >/dev/null 2>&1 \
+    || /usr/sbin/arp -d "$peer" >/dev/null 2>&1
+fi
 exit 0
