@@ -5,7 +5,7 @@ Gives one Thunderbolt port a static point-to-point address, outside the Thunderb
 ## What it does
 
 1. Disables the `Thunderbolt Bridge` network service. The bridge otherwise owns every Thunderbolt port.
-2. Renders `thunderbolt-link.sh`, which takes the interface out of `bridge0`, gives it `address` with a /30 netmask, and adds a host route to `peer` through it. This is what `mlx.distributed_config --auto-setup` runs by hand, but that doesn't survive a reboot.
+2. Renders `thunderbolt-link.sh`, which takes the interface out of `bridge0`, gives it `address` with a /30 netmask, which also routes to `peer`. This is what `mlx.distributed_config --auto-setup` does by hand, but that doesn't survive a reboot. It also clears a peer ARP entry that points at the port's own MAC (left by versions before 6.5.2, which added a `route -interface` host route).
 3. Installs a LaunchDaemon (label `cloud.cosmonautical.thunderbolt-link`) that runs the script at load and every `thunderbolt_link_interval` seconds (60). The port has no address until the cable is up, so applying it only at boot isn't enough. The script only changes what's missing.
 4. Warns if `ibv_devices` doesn't list `rdma_<interface>`.
 

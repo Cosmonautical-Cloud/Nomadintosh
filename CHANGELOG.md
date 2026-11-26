@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this project follows [semantic versioning](https://semver.org/).
 
+## [6.5.2] - 2026-11-25
+
+### Fixed
+
+- `thunderbolt_link` broke the link it set up. Every minute its script ran `route change -host <peer> -interface <iface>`, and on macOS `-interface` makes the gateway the port's own MAC, so it overwrote the peer's ARP entry with this Mac's own address. Traffic to the peer then looped back (`Time to live exceeded` from the local address, `No route to host` on TCP), and MLX's `jaccl` rank 1 couldn't reach the coordinator. The script no longer adds a host route (the /30 already covers the peer), and it deletes a peer ARP entry that points at the port's own MAC, which repairs a host the old script already broke.
+
 ## [6.5.1] - 2026-11-24
 
 ### Fixed
